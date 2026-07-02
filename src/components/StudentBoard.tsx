@@ -153,7 +153,6 @@ export default function StudentBoard({
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      setIsRecording(false);
       return;
     }
 
@@ -179,6 +178,7 @@ export default function StudentBoard({
       const textToSubmit = accumulatedTranscriptRef.current.trim();
       console.log("STT recording ended. Text to submit:", textToSubmit);
       if (!textToSubmit) {
+        setPostItText("");
         return;
       }
 
@@ -201,6 +201,7 @@ export default function StudentBoard({
         onPostIt(textToSubmit, postItColor);
       } finally {
         accumulatedTranscriptRef.current = "";
+        setPostItText("");
         setSttLoading(false);
       }
     };
@@ -212,6 +213,7 @@ export default function StudentBoard({
         fullTranscript += event.results[i][0].transcript + " ";
       }
       accumulatedTranscriptRef.current = fullTranscript.trim();
+      setPostItText(accumulatedTranscriptRef.current); // 실시간 텍스트 영역 동기화하여 화면 노출 보장
       console.log("STT progress:", accumulatedTranscriptRef.current);
     };
 

@@ -204,9 +204,9 @@ export default function TeacherLobby({
             <div className="flex justify-between items-center">
               <h3 className="font-headline text-lg font-bold text-secondary-brand flex items-center gap-2">
                 <span className="material-symbols-outlined text-amber-600">bookmarks</span>
-                💾 교사용 수업 설계 프리셋 저장/불러오기
+                💾 교사용 수업 설계 프리셋 불러오기
               </h3>
-              <span className="text-xs text-slate-400">자주 쓰는 설정을 저장해 두세요!</span>
+              <span className="text-xs text-slate-400">기존 설정을 불러옵니다.</span>
             </div>
 
             {/* Presets List */}
@@ -239,25 +239,6 @@ export default function TeacherLobby({
             ) : (
               <p className="font-sans text-sm text-slate-400 text-center py-2">등록된 수업 설계 프리셋이 없습니다.</p>
             )}
-
-            {/* Save Current as Preset Form */}
-            <div className="pt-2 border-t border-slate-200/60 flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="현재 설정을 저장할 프리셋 이름을 지어주세요... (예: 2학기 3단원 모둠 토의)"
-                value={presetNameInput}
-                onChange={(e) => setPresetNameInput(e.target.value)}
-                className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2 font-sans text-xs outline-none focus:border-amber-400 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={handleSavePreset}
-                className="bg-secondary-brand text-white font-headline text-xs font-bold px-4 py-2 rounded-xl border-b-2 border-slate-700 hover:bg-slate-700 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-sm">save</span>
-                현재 설정 저장
-              </button>
-            </div>
           </div>
 
           <div className="glass-panel p-6 md:p-8 space-y-6">
@@ -507,7 +488,7 @@ export default function TeacherLobby({
               )}
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 space-y-4">
               <button
                 onClick={handleCreate}
                 disabled={loading}
@@ -516,6 +497,32 @@ export default function TeacherLobby({
                 <span className="material-symbols-outlined">add_circle</span>
                 {loading ? "생성 중..." : "새로운 토의 방 생성하기 ➡️"}
               </button>
+
+              <div className="bg-amber-50/40 p-5 rounded-2xl border border-amber-200/50 space-y-3 mt-4 text-left">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-headline text-sm font-bold text-secondary-brand flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-amber-600">save</span>
+                    💾 현재 설정을 새 프리셋으로 저장해두기
+                  </h4>
+                  <span className="text-[10px] text-slate-400">다음에 다시 쓸 수 있어요!</span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    placeholder="저장할 프리셋 이름을 지어주세요... (예: 2학기 환경 보호 토의)"
+                    value={presetNameInput}
+                    onChange={(e) => setPresetNameInput(e.target.value)}
+                    className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2 font-sans text-xs outline-none focus:border-amber-400 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSavePreset}
+                    className="bg-secondary-brand text-white font-headline text-xs font-bold px-4 py-2 rounded-xl border-b-2 border-slate-700 hover:bg-slate-700 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    현재 설정 저장
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
