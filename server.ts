@@ -24,8 +24,22 @@ app.use((req, res, next) => {
 });
 
 // Initialize Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || "";
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
+let supabaseUrl = (process.env.SUPABASE_URL || "").trim();
+let supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
+
+// 따옴표가 함께 복사되어 환경변수로 등록된 경우를 대비해 양 끝의 따옴표를 정밀 제거합니다.
+if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
+  supabaseUrl = supabaseUrl.slice(1, -1);
+} else if (supabaseUrl.startsWith("'") && supabaseUrl.endsWith("'")) {
+  supabaseUrl = supabaseUrl.slice(1, -1);
+}
+
+if (supabaseAnonKey.startsWith('"') && supabaseAnonKey.endsWith('"')) {
+  supabaseAnonKey = supabaseAnonKey.slice(1, -1);
+} else if (supabaseAnonKey.startsWith("'") && supabaseAnonKey.endsWith("'")) {
+  supabaseAnonKey = supabaseAnonKey.slice(1, -1);
+}
+
 let supabase: any = null;
 
 try {
@@ -47,8 +61,15 @@ let ai: any = null;
 function getGeminiClient() {
   if (!ai && process.env.GEMINI_API_KEY) {
     try {
+      let apiKey = process.env.GEMINI_API_KEY.trim();
+      if (apiKey.startsWith('"') && apiKey.endsWith('"')) {
+        apiKey = apiKey.slice(1, -1);
+      } else if (apiKey.startsWith("'") && apiKey.endsWith("'")) {
+        apiKey = apiKey.slice(1, -1);
+      }
+      
       ai = new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: apiKey,
         httpOptions: {
           headers: {
             "User-Agent": "aistudio-build",
