@@ -584,16 +584,7 @@ export default function TeacherLobby({
             </div>
 
             <div className="pt-4 space-y-4">
-              <button
-                onClick={handleCreate}
-                disabled={loading}
-                className="w-full chunky-button bg-primary-brand text-white font-headline text-xl font-bold py-4 rounded-xl border-b-4 border-amber-800 hover:bg-amber-600 active:translate-y-1 transition-all flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined">add_circle</span>
-                {loading ? "생성 중..." : "새로운 토의 방 생성하기 ➡️"}
-              </button>
-
-              <div className="bg-amber-50/40 p-5 rounded-2xl border border-amber-200/50 space-y-3 mt-4 text-left">
+              <div className="bg-amber-50/40 p-5 rounded-2xl border border-amber-200/50 space-y-3 text-left">
                 <div className="flex justify-between items-center">
                   <h4 className="font-headline text-sm font-bold text-secondary-brand flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-amber-600">save</span>
@@ -618,6 +609,15 @@ export default function TeacherLobby({
                   </button>
                 </div>
               </div>
+
+              <button
+                onClick={handleCreate}
+                disabled={loading}
+                className="w-full chunky-button bg-primary-brand text-white font-headline text-xl font-bold py-4 rounded-xl border-b-4 border-amber-800 hover:bg-amber-600 active:translate-y-1 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">add_circle</span>
+                {loading ? "생성 중..." : "새로운 토의 방 생성하기 ➡️"}
+              </button>
             </div>
           </div>
         </div>
