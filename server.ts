@@ -1209,27 +1209,32 @@ app.post("/api/rooms/:roomId/stt-correct", async (req, res) => {
 // ================= VITE DEV / PRODUCTION FLOW =================
 
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    // Integrate Vite in development mode
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
+  if (process.env.VERCEL !== "1") {
+    if (process.env.NODE_ENV !== "production") {
+      // Integrate Vite in development mode
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      console.log("Vite development middleware mounted successfully.");
+    } else {
+      // Production serving of static compiled files
+      const distPath = path.join(process.cwd(), "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+      console.log("Serving production build from dist directory.");
+    }
+    
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`[MOA Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || "development"} mode`);
     });
-    app.use(vite.middlewares);
-    console.log("Vite development middleware mounted successfully.");
-  } else {
-    // Production serving of static compiled files
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-    console.log("Serving production build from dist directory.");
   }
-  
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[MOA Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || "development"} mode`);
-  });
 }
 
 startServer();
+
+export default app;
+
