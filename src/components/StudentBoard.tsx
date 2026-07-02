@@ -43,7 +43,7 @@ export default function StudentBoard({
   const [artifactInput, setArtifactInput] = useState("");
   const [isSavingArtifact, setIsSavingArtifact] = useState(false);
 
-  const group = room.groups.find((g) => g.id === student.groupId) as Group;
+  const group = room.groups.find((g) => g.id === student.groupId) || room.groups[0];
 
   useEffect(() => {
     if (group?.artifactText !== undefined) {
@@ -52,9 +52,10 @@ export default function StudentBoard({
   }, [group?.artifactText]);
 
   const handleSaveArtifact = async () => {
+    if (!group) return;
     setIsSavingArtifact(true);
     try {
-      await fetch(`/api/rooms/${room.roomId}/group/${student.groupId}/artifact`, {
+      await fetch(`/api/rooms/${room.roomId}/group/${group.id}/artifact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ artifactText: artifactInput }),
@@ -79,7 +80,7 @@ export default function StudentBoard({
       // Draw was triggered but spinner hasn't run locally, simulate draw spin
       setIsSpinning(true);
       let count = 0;
-      const teammates = room.students.filter((s) => s.groupId === student.groupId && s.active);
+      const teammates = room.students.filter((s) => s.groupId === group.id && s.active);
       const names = teammates.map((t) => t.name);
       
       const interval = setInterval(() => {
@@ -172,13 +173,23 @@ export default function StudentBoard({
     setPostItText("");
   };
 
-  if (!group) return null;
+  if (!group) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 text-center">
+        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm border border-slate-200">
+          <p className="font-headline font-bold text-slate-800">모둠을 찾을 수 없습니다.</p>
+          <p className="text-xs text-slate-500 mt-2">선생님이 설정하신 모둠 수가 변경되었을 수 있습니다.</p>
+          <button onClick={onLeave} className="mt-4 px-6 py-2 bg-orange-500 text-white rounded-full text-sm font-bold">뒤로가기</button>
+        </div>
+      </div>
+    );
+  }
 
   // Active vote verification
   const userHasVoted = group.activeVote?.votedStudents.includes(student.name) || false;
 
   // Filter classmates of the active group
-  const groupStudents = room.students.filter((s) => s.groupId === student.groupId);
+  const groupStudents = room.students.filter((s) => s.groupId === group.id);
   const activeGroupStudents = groupStudents.filter((s) => s.active);
 
   // Reusable Facilitator Speech Bubble helper
@@ -259,7 +270,7 @@ export default function StudentBoard({
               <span className="text-orange-500 text-sm font-black tracking-widest bg-orange-50 px-2 py-0.5 rounded">MOA</span>
             </h1>
             <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">
-              Group {student.groupId} • Room #{room.roomId}
+              Group {group.id} • Room #{room.roomId}
             </p>
           </div>
         </div>
@@ -351,7 +362,7 @@ export default function StudentBoard({
               </h2>
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100 w-full text-left space-y-2">
                 <p className="text-slate-700 font-medium">
-                  • {student.name} 친구는 <span className="text-orange-500 font-extrabold">{student.groupId}모둠</span>입니다.
+                  • {student.name} 친구는 <span className="text-orange-500 font-extrabold">{group.id}모둠</span>입니다.
                 </p>
                 <p className="text-slate-700 font-medium">
                   • 선생님께서 화면을 넘기실 때까지 친구들과 가볍게 대화하며 기다려 주세요.

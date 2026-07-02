@@ -542,8 +542,9 @@ app.post("/api/rooms/:roomId/join", (req, res) => {
     if (avatarIcon) student.avatarIcon = avatarIcon;
   } else {
     // Dynamic admission
-    // Calculate smallest group to assign
-    const groupCounts = Array.from({ length: 6 }).map((_, i) => {
+    // Calculate smallest group to assign (based on active group count)
+    const activeGroupCount = room.groups?.length || room.groupCount || 6;
+    const groupCounts = Array.from({ length: activeGroupCount }).map((_, i) => {
       const gId = i + 1;
       return room.students.filter((s) => s.groupId === gId).length;
     });
