@@ -338,9 +338,16 @@ app.post("/api/rooms/:roomId/group/:groupId/artifact", (req, res) => {
 // Teacher Google Login API - OAuth URL generator
 app.get("/api/auth/google/url", (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID;
-  const redirectUri = `${req.protocol}://${req.get("host")}/auth/callback`;
+  
+  // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
+  const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
+  const host = req.get("host") || "localhost:3000";
+  const redirectUri = `${protocol}://${host}/auth/callback`;
+  
+  console.log(`🔐 OAuth Redirect URI: ${redirectUri}`);
   
   if (!clientId) {
+    console.warn("⚠️ GOOGLE_CLIENT_ID not configured, using mock login");
     res.json({ useMock: true });
     return;
   }
@@ -366,7 +373,13 @@ app.get(["/auth/callback", "/auth/callback/"], async (req, res) => {
   try {
     const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET;
-    const redirectUri = `${req.protocol}://${req.get("host")}/auth/callback`;
+    
+    // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
+    const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
+    const host = req.get("host") || "localhost:3000";
+    const redirectUri = `${protocol}://${host}/auth/callback`;
+    
+    console.log(`🔐 OAuth Callback - Redirect URI: ${redirectUri}`);
     
     if (code && clientId && clientSecret) {
       const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
