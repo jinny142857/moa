@@ -14,6 +14,15 @@ const ROOMS_FILE = path.join(process.cwd(), "rooms.json");
 
 app.use(express.json());
 
+// Vercel 환경에서 프론트엔드가 요청한 원래 URL 경로 복원
+app.use((req, res, next) => {
+  const forwardedUrl = req.headers["x-forwarded-url"];
+  if (forwardedUrl && typeof forwardedUrl === "string") {
+    req.url = forwardedUrl;
+  }
+  next();
+});
+
 // Initialize Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
