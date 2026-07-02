@@ -35,6 +35,34 @@ export default function StudentBoard({
   const [sttLoading, setSttLoading] = useState(false);
   const recognitionRef = useRef<any>(null);
   const accumulatedTranscriptRef = useRef("");
+  const [recordingTimeLeft, setRecordingTimeLeft] = useState(60);
+
+  // 60초 음성인식 카운트다운 타이머
+  useEffect(() => {
+    let interval: any = null;
+    if (isRecording) {
+      setRecordingTimeLeft(60);
+      interval = setInterval(() => {
+        setRecordingTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            // 60초 만료 시 녹음 중지 (onend가 자동 제출을 실행함)
+            if (recognitionRef.current) {
+              recognitionRef.current.stop();
+            }
+            setIsRecording(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setRecordingTimeLeft(60);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
 
   // Slot-Machine Reel Animation States for presenter draw
   const [isSpinning, setIsSpinning] = useState(false);
@@ -797,23 +825,34 @@ export default function StudentBoard({
 
         {/* Central mic recording toggle button */}
         {room.currentStepIndex === 1 ? (
-          <button 
-            type="button"
-            onClick={handleStartSTT}
-            disabled={sttLoading}
-            className={`h-16 px-12 rounded-full shadow-lg flex items-center gap-4 transition-all duration-300 ${
-              isRecording 
-                ? "bg-rose-500 shadow-rose-200 text-white animate-pulse" 
-                : "bg-orange-500 shadow-orange-200 text-white hover:bg-orange-600 active:scale-95"
-            }`}
-          >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isRecording ? "bg-white text-rose-500" : "bg-white text-orange-500"}`}>
-              <span className="material-symbols-outlined text-lg">{isRecording ? "mic_off" : "mic"}</span>
-            </div>
-            <span className="text-white text-md font-bold">
-              {isRecording ? "음성 인식 중..." : sttLoading ? "제출 준비 중..." : "말로 입력하기"}
-            </span>
-          </button>
+          (() => {
+            const hasSubmittedPostIt = group?.postits.some((p) => p.studentName === student.name) || false;
+            return (
+              <button 
+                type="button"
+                onClick={handleStartSTT}
+                disabled={sttLoading}
+                className={`h-16 px-12 rounded-full shadow-lg flex items-center gap-4 transition-all duration-300 ${
+                  isRecording 
+                    ? "bg-rose-500 shadow-rose-200 text-white animate-pulse" 
+                    : "bg-orange-500 shadow-orange-200 text-white hover:bg-orange-600 active:scale-95"
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isRecording ? "bg-white text-rose-500" : "bg-white text-orange-500"}`}>
+                  <span className="material-symbols-outlined text-lg">{isRecording ? "mic_off" : "mic"}</span>
+                </div>
+                <span className="text-white text-md font-bold">
+                  {isRecording 
+                    ? `음성 인식 중... (${recordingTimeLeft}초)` 
+                    : sttLoading 
+                    ? "제출 준비 중..." 
+                    : hasSubmittedPostIt 
+                    ? "추가 발언하기 (의견 추가)" 
+                    : "말로 입력하기"}
+                </span>
+              </button>
+            );
+          })()
         ) : (
           <div className="text-slate-400 text-xs font-bold bg-slate-100 px-6 py-2.5 rounded-full flex items-center gap-1.5 border border-slate-200">
             <span className="material-symbols-outlined text-sm">lock</span>
