@@ -1,0 +1,6 @@
+{
+  "name": "모두모아 (MOA)",
+  "description": "초등학교 모둠별 토의 수업 시 기기 간 화면 동기화 및 사회자 아바타를 활용하여 스스로 토의를 진행하도록 돕는 실시간 디지털 사회자 웹앱",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
