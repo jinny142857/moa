@@ -173,7 +173,7 @@ setInterval(() => {
 
 // Create Room (Teacher Mode)
 app.post("/api/rooms/create", (req, res) => {
-  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount } = req.body;
+  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount, questions, hasVote } = req.body;
   
   if (!topic) {
     res.status(400).json({ error: "토의 주제가 필요합니다." });
@@ -237,6 +237,8 @@ app.post("/api/rooms/create", (req, res) => {
     ],
     hasArtifact: hasArtifact !== undefined ? Boolean(hasArtifact) : false,
     groupCount: groupCountNum,
+    questions: Array.isArray(questions) ? questions.filter(Boolean) : [topic],
+    hasVote: hasVote !== undefined ? Boolean(hasVote) : false,
   };
   
   rooms[roomId] = newRoom;
@@ -249,7 +251,7 @@ app.post("/api/rooms/create", (req, res) => {
 // Update Room Configuration (Teacher Mode edit)
 app.post("/api/rooms/:roomId/update", (req, res) => {
   const { roomId } = req.params;
-  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount } = req.body;
+  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount, questions, hasVote } = req.body;
   
   const room = rooms[roomId.toUpperCase()];
   if (!room) {
@@ -264,6 +266,8 @@ app.post("/api/rooms/:roomId/update", (req, res) => {
   }
   if (stepPrompts) room.stepPrompts = stepPrompts;
   if (hasArtifact !== undefined) room.hasArtifact = Boolean(hasArtifact);
+  if (questions) room.questions = Array.isArray(questions) ? questions.filter(Boolean) : [room.topic];
+  if (hasVote !== undefined) room.hasVote = Boolean(hasVote);
   
   const oldGroupCount = room.groupCount || 6;
   const newGroupCount = Number(groupCount) || oldGroupCount;
@@ -715,6 +719,13 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
     res.status(400).json({ error: "모둠을 찾을 수 없습니다." });
     return;
   }
+
+  // Calculate current questionId based on currentStepIndex
+  let questionId = 0;
+  const questionsCount = room.questions?.length || 1;
+  if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3) {
+    questionId = Math.floor((room.currentStepIndex - 1) / 3);
+  }
   
   const newPostIt: PostIt = {
     id: Math.random().toString(36).substring(2, 9),
@@ -724,6 +735,7 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
     likes: 0,
     sttCorrected: false,
     createdAt: Date.now(),
+    questionId,
   };
   
   group.postits.push(newPostIt);
@@ -750,6 +762,7 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
         text: text,
         color: color || "#ffd93d",
         stt_corrected: false,
+        question_id: questionId,
       });
     } catch (err) {
       console.error("Failed to save postit to Supabase:", err);
@@ -837,27 +850,40 @@ app.post("/api/rooms/:roomId/step", (req, res) => {
   
   room.currentStepIndex = Number(stepIndex);
   
-  // Set Timer based on steps
-  let duration = 180; // 3 mins default
-  if (room.currentStepIndex === 1) duration = 180; // 생각 시간 3분
-  if (room.currentStepIndex === 2) duration = 240; // 릴레이 발표 4분
-  if (room.currentStepIndex === 3) duration = 300; // 생각 모으기 5분
-  if (room.currentStepIndex === 4) duration = 120; // 미니 투표 2분
+  // Set dynamic Timer and Phase names based on questions count
+  const questionsCount = room.questions?.length || 1;
+  let duration = 180; // default 3 mins
+  let phaseName = "토의 진행";
+
+  if (room.currentStepIndex === 0) {
+    duration = 180;
+    phaseName = "대기실 로비";
+  } else if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3) {
+    const zeroIndexedStep = room.currentStepIndex - 1;
+    const questionIndex = Math.floor(zeroIndexedStep / 3);
+    const stageIndex = zeroIndexedStep % 3;
+
+    if (stageIndex === 0) {
+      duration = 180; // 생각 시간 3분
+      phaseName = `질문 ${questionIndex + 1}: 생각 시간`;
+    } else if (stageIndex === 1) {
+      duration = 240; // 발표자 뽑기 4분
+      phaseName = `질문 ${questionIndex + 1}: 발표자 뽑기`;
+    } else if (stageIndex === 2) {
+      duration = 300; // 생각 모으기 5분
+      phaseName = `질문 ${questionIndex + 1}: 생각 모으기`;
+    }
+  } else if (room.hasVote && room.currentStepIndex === questionsCount * 3 + 1) {
+    duration = 120; // 미니 투표 2분
+    phaseName = "미니 투표 진행";
+  } else {
+    duration = 180;
+    phaseName = "토의 마침";
+  }
   
   room.timerDuration = duration;
   room.timerLeft = duration;
   room.timerActive = false; // pause initially
-  
-  // Sync phases for each group
-  const phaseNames = [
-    "대기실 로비",
-    "1단계: 생각 시간",
-    "2단계: 발표자 뽑기",
-    "3단계: 생각 모으기",
-    "4단계: 투표 진행",
-    "토의 마침",
-  ];
-  const phaseName = phaseNames[room.currentStepIndex] || "토의 진행";
   
   room.groups.forEach((g) => {
     g.phase = phaseName;

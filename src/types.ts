@@ -16,6 +16,7 @@ export interface PostIt {
   likes: number;
   sttCorrected: boolean;
   createdAt: number;
+  questionId?: number; // Associated question index (0-indexed)
 }
 
 export interface VoteOption {
@@ -63,4 +64,6 @@ export interface RoomState {
   stepPrompts?: string[]; // Teacher customized step-by-step prompts
   hasArtifact?: boolean; // Enable group collaborative artifact
   groupCount?: number; // Teacher customized number of groups (2 to 6)
+  questions?: string[]; // List of custom discussion questions
+  hasVote?: boolean; // Toggle voting stage option
 }

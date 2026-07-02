@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { RoomState } from "../types";
+import { RoomState, Student, Group } from "../types";
 import MascotIcon from "./MascotIcon";
 
 interface TeacherLobbyProps {
@@ -10,7 +10,9 @@ interface TeacherLobbyProps {
     studentNames: string[],
     stepPrompts?: string[],
     hasArtifact?: boolean,
-    groupCount?: number
+    groupCount?: number,
+    questions?: string[],
+    hasVote?: boolean
   ) => void;
   onStartLesson: () => void;
   teacherUser?: { name: string; email: string; picture?: string } | null;
@@ -25,6 +27,8 @@ interface SavedPreset {
   hasArtifact: boolean;
   groupCount: number;
   studentInput: string;
+  questions?: string[];
+  hasVote?: boolean;
 }
 
 export default function TeacherLobby({ 
@@ -43,12 +47,11 @@ export default function TeacherLobby({
 
   // Admin Mode & Customizable settings
   const [isAdminMode, setIsAdminMode] = useState(true);
-  const [stepPrompts, setStepPrompts] = useState<string[]>([
-    "오늘의 핵심 질문에 대해 조용히 생각을 적어보는 시간이야! 떠오른 생각을 아래 칠판에 붙여보자! 💡",
-    "모둠 발표자를 정해볼 시간이야! 아래 추천기를 통해 순서를 정해보자. 친구 차례가 오면 마이크에 경청해 줘! 🎤",
-    "모둠 친구들이 낸 의견이 칠판에 모두 모였어! 하나씩 정성스레 읽어보고 정말 훌륭한 아이디어에 아낌없이 하트(❤️)를 눌러주자!",
-    "자! 실천가능성이 가장 훌륭한 카드 의견에 투표를 해볼 차례야! 모둠 최고의 명예는 누가 얻게 될까?"
+  const [questions, setQuestions] = useState<string[]>([
+    "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
+    "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
   ]);
+  const [hasVote, setHasVote] = useState(true);
   const [hasArtifact, setHasArtifact] = useState(false);
   const [groupCount, setGroupCount] = useState<number>(6);
 
@@ -69,15 +72,15 @@ export default function TeacherLobby({
         id: "default-env",
         name: "🌱 환경 보호 실천 토의 기본 세트",
         topic: "우리가 실천할 수 있는 환경 보호 방법은 무엇일까요?",
-        stepPrompts: [
-          "오늘의 핵심 질문에 대해 조용히 생각을 적어보는 시간이야! 떠오른 생각을 아래 칠판에 붙여보자! 💡",
-          "모둠 발표자를 정해볼 시간이야! 아래 추천기를 통해 순서를 정해보자. 친구 차례가 오면 마이크에 경청해 줘! 🎤",
-          "모둠 친구들이 낸 의견이 칠판에 모두 모였어! 하나씩 정성스레 읽어보고 정말 훌륭한 아이디어에 아낌없이 하트(❤️)를 눌러주자!",
-          "자! 실천가능성이 가장 훌륭한 카드 의견에 투표를 해볼 차례야! 모둠 최고의 명예는 누가 얻게 될까?"
-        ],
+        stepPrompts: [],
         hasArtifact: true,
         groupCount: 6,
-        studentInput: "민준, 서연, 도윤, 하은, 주원, 지우, 예준, 수아, 준우, 서아, 지호, 민지, 선우, 유진, 도현, 채원, 시우, 서현, 지훈, 하윤, 지호2, 민수"
+        studentInput: "민준, 서연, 도윤, 하은, 주원, 지우, 예준, 수아, 준우, 서아, 지호, 민지, 선우, 유진, 도현, 채원, 시우, 서현, 지훈, 하윤, 지호2, 민수",
+        questions: [
+          "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
+          "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
+        ],
+        hasVote: true
       };
       setPresets([defaultPreset]);
       localStorage.setItem("moa_presets", JSON.stringify([defaultPreset]));
@@ -93,10 +96,12 @@ export default function TeacherLobby({
       id: Date.now().toString(),
       name: presetNameInput.trim(),
       topic,
-      stepPrompts,
+      stepPrompts: [],
       hasArtifact,
       groupCount,
       studentInput,
+      questions,
+      hasVote,
     };
     const updated = [...presets, newPreset];
     setPresets(updated);
@@ -107,7 +112,14 @@ export default function TeacherLobby({
 
   const handleLoadPreset = (preset: SavedPreset) => {
     setTopic(preset.topic);
-    setStepPrompts(preset.stepPrompts);
+    if (preset.questions) {
+      setQuestions(preset.questions);
+    } else {
+      setQuestions([preset.topic]);
+    }
+    if (preset.hasVote !== undefined) {
+      setHasVote(preset.hasVote);
+    }
     setHasArtifact(preset.hasArtifact);
     setGroupCount(preset.groupCount);
     setStudentInput(preset.studentInput);
@@ -128,6 +140,11 @@ export default function TeacherLobby({
       alert("토의 주제를 입력해주세요!");
       return;
     }
+    const filteredQuestions = questions.filter((q) => q.trim().length > 0);
+    if (filteredQuestions.length === 0) {
+      alert("최소 한 개 이상의 토의 질문(발문)을 입력해주세요!");
+      return;
+    }
     setLoading(true);
     // Parse comma or newline separated student names
     const names = studentInput
@@ -139,9 +156,11 @@ export default function TeacherLobby({
       topic, 
       character, 
       names, 
-      isAdminMode ? stepPrompts : undefined, 
+      undefined, 
       isAdminMode ? hasArtifact : false, 
-      isAdminMode ? groupCount : 6
+      isAdminMode ? groupCount : 6,
+      filteredQuestions,
+      hasVote
     );
     setLoading(false);
   };
@@ -250,14 +269,68 @@ export default function TeacherLobby({
               <input
                 type="text"
                 className="w-full bg-white/50 border-2 border-slate-200/60 rounded-xl px-4 py-3 font-sans text-lg focus:bg-white focus:border-amber-400 outline-none transition-all shadow-inner"
-                placeholder="토의 주제를 적어주세요. (예: 우리가 실천할 수 있는 환경 보호 방법)"
+                placeholder="토의 대주제를 적어주세요. (예: 우리가 실천할 수 있는 환경 보호 방법)"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
             </div>
 
+            {/* Dynamic Questions (발문) Manager */}
+            <div className="space-y-4 pt-2 border-t border-slate-100">
+              <div className="flex justify-between items-center">
+                <label className="block font-headline text-lg font-bold text-secondary-brand">
+                  ✍️ 토의 세부 질문(발문) 등록 및 편집
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setQuestions([...questions, ""])}
+                  className="bg-primary-brand text-white font-headline text-xs font-bold px-3 py-1.5 rounded-lg border-b-2 border-amber-800 hover:bg-amber-600 active:translate-y-0.5 transition-all flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  질문 추가
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {questions.map((q, idx) => (
+                  <div key={idx} className="flex gap-2 items-center animate-fade-in">
+                    <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-headline font-bold text-slate-500 shrink-0 text-sm">
+                      {idx + 1}
+                    </span>
+                    <input
+                      type="text"
+                      value={q}
+                      onChange={(e) => {
+                        const updated = [...questions];
+                        updated[idx] = e.target.value;
+                        setQuestions(updated);
+                      }}
+                      placeholder={`발문 ${idx + 1}을 입력해주세요.`}
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-amber-400 transition-colors"
+                    />
+                    {questions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = questions.filter((_, i) => i !== idx);
+                          setQuestions(updated);
+                        }}
+                        className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                        title="삭제"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                💡 질문 개수에 따라 토의 화면 단계([생각 정리] ➡️ [발표] ➡️ [의견 모으기])가 질문별로 순환 배치되며, 사회자(마스코트)의 안내 멘트도 자동으로 생성됩니다.
+              </p>
+            </div>
+
             {/* Character selection */}
-            <div className="space-y-2">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               <label className="block font-headline text-lg font-bold text-secondary-brand">
                 🦊 디지털 퍼실리테이터(사회자) 캐릭터 선택
               </label>
@@ -329,7 +402,7 @@ export default function TeacherLobby({
                     <span className="material-symbols-outlined text-amber-500">settings_applications</span>
                     교사 관리자 상세 옵션 모드
                   </h4>
-                  <p className="text-xs text-slate-500">발문 편집, 산출물 유무, 모둠 수 정밀 설정 활성화</p>
+                  <p className="text-xs text-slate-500">산출물 유무, 투표 단계 활성화, 모둠 수 정밀 설정</p>
                 </div>
                 <button
                   type="button"
@@ -349,70 +422,36 @@ export default function TeacherLobby({
               {isAdminMode && (
                 <div className="space-y-4 p-4 bg-slate-50/40 rounded-2xl border border-slate-200/60 text-left animate-fade-in">
                   
-                  {/* Step Prompts (단계별 발문) */}
-                  <div className="space-y-3">
-                    <h5 className="font-headline text-sm font-bold text-slate-700">✍️ 토의 단계별 사회자(퍼실리테이터) 발문 맞춤 편집</h5>
-                    
-                    <div className="space-y-2.5">
-                      <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-500">1단계: 생각 정리 사회자 멘트</span>
-                        <input
-                          type="text"
-                          value={stepPrompts[0]}
-                          onChange={(e) => {
-                            const updated = [...stepPrompts];
-                            updated[0] = e.target.value;
-                            setStepPrompts(updated);
-                          }}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 font-sans text-xs outline-none focus:border-amber-400"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-500">2단계: 발표자 추천 사회자 멘트</span>
-                        <input
-                          type="text"
-                          value={stepPrompts[1]}
-                          onChange={(e) => {
-                            const updated = [...stepPrompts];
-                            updated[1] = e.target.value;
-                            setStepPrompts(updated);
-                          }}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 font-sans text-xs outline-none focus:border-amber-400"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-500">3단계: 생각 모으기 사회자 멘트</span>
-                        <input
-                          type="text"
-                          value={stepPrompts[2]}
-                          onChange={(e) => {
-                            const updated = [...stepPrompts];
-                            updated[2] = e.target.value;
-                            setStepPrompts(updated);
-                          }}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 font-sans text-xs outline-none focus:border-amber-400"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-500">4단계: 미니 투표 사회자 멘트</span>
-                        <input
-                          type="text"
-                          value={stepPrompts[3]}
-                          onChange={(e) => {
-                            const updated = [...stepPrompts];
-                            updated[3] = e.target.value;
-                            setStepPrompts(updated);
-                          }}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 font-sans text-xs outline-none focus:border-amber-400"
-                        />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {/* Has Vote (투표 여부) */}
+                    <div className="space-y-2">
+                      <span className="block text-xs font-bold text-slate-500">🗳️ 실천가능성 미니 투표 단계 포함</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setHasVote(true)}
+                          className={`flex-1 font-headline font-bold text-xs py-2.5 rounded-xl border transition-all ${
+                            hasVote
+                              ? "bg-amber-500 text-white border-amber-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          투표 진행함
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHasVote(false)}
+                          className={`flex-1 font-headline font-bold text-xs py-2.5 rounded-xl border transition-all ${
+                            !hasVote
+                              ? "bg-amber-500 text-white border-amber-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          투표 건너뜀
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     {/* Has Artifact (산출물 유무) */}
                     <div className="space-y-2">
                       <span className="block text-xs font-bold text-slate-500">📝 모둠 최종 산출물(결론 정리) 생성</span>
@@ -441,26 +480,26 @@ export default function TeacherLobby({
                         </button>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Group Count Selection (모둠 수) */}
-                    <div className="space-y-2">
-                      <span className="block text-xs font-bold text-slate-500">📊 학급 총 모둠 수 설정</span>
-                      <div className="flex gap-1.5 bg-white p-1 border border-slate-200 rounded-xl">
-                        {[2, 3, 4, 5, 6].map((num) => (
-                          <button
-                            type="button"
-                            key={num}
-                            onClick={() => setGroupCount(num)}
-                            className={`flex-1 font-headline font-bold text-xs py-1.5 rounded-lg transition-all ${
-                              groupCount === num
-                                ? "bg-slate-800 text-white"
-                                : "text-slate-500 hover:bg-slate-50"
-                            }`}
-                          >
-                            {num}모둠
-                          </button>
-                        ))}
-                      </div>
+                  {/* Group Count Selection (모둠 수) */}
+                  <div className="space-y-2 pt-2 border-t border-slate-200/40">
+                    <span className="block text-xs font-bold text-slate-500">📊 학급 총 모둠 수 설정</span>
+                    <div className="flex gap-1.5 bg-white p-1 border border-slate-200 rounded-xl max-w-md">
+                      {[2, 3, 4, 5, 6].map((num) => (
+                        <button
+                          type="button"
+                          key={num}
+                          onClick={() => setGroupCount(num)}
+                          className={`flex-1 font-headline font-bold text-xs py-1.5 rounded-lg transition-all ${
+                            groupCount === num
+                              ? "bg-slate-800 text-white"
+                              : "text-slate-500 hover:bg-slate-50"
+                          }`}
+                        >
+                          {num}모둠
+                        </button>
+                      ))}
                     </div>
                   </div>
 

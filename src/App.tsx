@@ -163,13 +163,15 @@ export default function App() {
     studentNames: string[],
     stepPrompts?: string[],
     hasArtifact?: boolean,
-    groupCount?: number
+    groupCount?: number,
+    questions?: string[],
+    hasVote?: boolean
   ) => {
     try {
       const res = await fetch("/api/rooms/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, character, studentNames, stepPrompts, hasArtifact, groupCount }),
+        body: JSON.stringify({ topic, character, studentNames, stepPrompts, hasArtifact, groupCount, questions, hasVote }),
       });
       const data = await res.json();
       setRoom(data.room);
@@ -188,6 +190,8 @@ export default function App() {
     stepPrompts: string[];
     hasArtifact: boolean;
     groupCount: number;
+    questions?: string[];
+    hasVote?: boolean;
   }) => {
     if (!room) return;
     try {
@@ -227,8 +231,10 @@ export default function App() {
         body: JSON.stringify({ stepIndex }),
       });
 
-      // Auto start a voting session when entering Step 4
-      if (stepIndex === 4) {
+      // Auto start a voting session when entering Step (M * 3 + 1)
+      const questionsCount = room.questions?.length || 1;
+      const votingStepIndex = questionsCount * 3 + 1;
+      if (room.hasVote && stepIndex === votingStepIndex) {
         await fetch(`/api/rooms/${room.roomId}/vote/start`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -74,6 +74,14 @@ export default function StudentBoard({
 
   const group = room.groups.find((g) => g.id === student.groupId) || room.groups[0];
 
+  // Dynamic timeline calculations
+  const questionsCount = room.questions?.length || 1;
+  const maxStepIndex = questionsCount * 3 + (room.hasVote ? 1 : 0) + 1;
+  const isQuestionStep = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3;
+  const currentQuestionIndex = isQuestionStep ? Math.floor((room.currentStepIndex - 1) / 3) : 0;
+  const stageIndex = isQuestionStep ? (room.currentStepIndex - 1) % 3 : null;
+  const votingStepIndex = room.hasVote ? questionsCount * 3 + 1 : -1;
+
   useEffect(() => {
     if (group?.artifactText !== undefined) {
       setArtifactInput(group.artifactText);
@@ -417,15 +425,16 @@ export default function StudentBoard({
           )}
 
           {/* STEP 1: 생각 정리 (Thinking & Write Card) */}
-          {room.currentStepIndex === 1 && (
+          {/* STEP 1: 생각 정리 (Thinking & Write Card) */}
+          {isQuestionStep && stageIndex === 0 && (
             <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"오늘의 핵심 질문에 대해 조용히 생각을 적어보는 시간이야! 떠오른 생각을 아래 칠판에 붙여보자! 💡"`)}
+              {renderSpeechBubble(`"오늘의 질문은 '${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}'이야! 이 질문에 대해 조용히 생각을 적어보는 시간이야. 아래 칠판에 붙여보자! 💡"`)}
 
               {/* Discussion Question display */}
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-br-2xl">DISCUSSION TOPIC</div>
                 <h3 className="text-2xl font-black text-slate-800 leading-tight mt-2">
-                  "{room.topic}"
+                  "{room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}"
                 </h3>
               </div>
 
@@ -495,10 +504,10 @@ export default function StudentBoard({
             </div>
           )}
 
-          {/* STEP 2: 발표자 뽑기 (Draw presenter slot machine) */}
-          {room.currentStepIndex === 2 && (
-            <div className="space-y-6 flex-1 flex flex-col justify-between">
-              {renderSpeechBubble(`"모둠 발표자를 정해볼 시간이야! 아래 추천기를 통해 순서를 정해보자. 친구 차례가 오면 마이크에 경청해 줘! 🎤"`)}
+          {/* STEP 2: 발표자 뽑기 (Relay Discussion) */}
+          {isQuestionStep && stageIndex === 1 && (
+            <div className="space-y-6 flex-1 flex flex-col">
+              {renderSpeechBubble(`"모둠 발표자를 정해볼 시간이야! '${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}' 주제에 대해 차례를 정해보자. 친구 차례가 오면 마이크에 경청해 줘! 🎤"`)}
 
               <div className="flex-1 flex flex-col justify-center items-center my-4">
                 {isSpinning ? (
@@ -615,17 +624,18 @@ export default function StudentBoard({
           )}
 
           {/* STEP 3: 생각 모으기 (Bulletin Board with hearts) */}
-          {room.currentStepIndex === 3 && (
+          {/* STEP 3: 생각 모으기 (Bulletin Board with hearts) */}
+          {isQuestionStep && stageIndex === 2 && (
             <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"모둠 친구들이 낸 의견이 칠판에 모두 모였어! 하나씩 정성스레 읽어보고 정말 훌륭한 아이디어에 아낌없이 하트(❤️)를 눌러주자!"`)}
+              {renderSpeechBubble(`"'${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}'에 대해 모둠 친구들이 낸 의견이 칠판에 모였어! 하나씩 잘 읽어보고 멋진 아이디어에 하트를 아낌없이 눌러주자! ❤️"`)}
 
               <div className="flex-1 grid grid-cols-2 gap-4">
-                {group.postits.length === 0 ? (
+                {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (
                   <div className="col-span-full py-16 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
                     아직 등록된 의견 카드가 없습니다.
                   </div>
                 ) : (
-                  group.postits.map((p, i) => {
+                  group.postits.filter(p => p.questionId === currentQuestionIndex).map((p, i) => {
                     const rotClass = i % 2 === 0 ? "rotate-1" : "-rotate-1";
                     return (
                       <div
@@ -674,9 +684,10 @@ export default function StudentBoard({
           )}
 
           {/* STEP 4: 미니 투표 */}
-          {room.currentStepIndex === 4 && (
+          {/* STEP 4: 미니 투표 */}
+          {room.hasVote && room.currentStepIndex === votingStepIndex && (
             <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"자! 실천가능성이 가장 훌륭한 카드 의견에 투표를 해볼 차례야! 모둠 최고의 명예는 누가 얻게 될까?"`)}
+              {renderSpeechBubble(`"자! 실천가능성이 가장 훌륭한 카드 의견에 투표를 해볼 차례야! 모둠 최고의 명예는 누가 얻게 될까? 🗳️"`)}
 
               <div className="flex-1 flex flex-col justify-center">
                 {group.activeVote?.active ? (
@@ -739,7 +750,8 @@ export default function StudentBoard({
           )}
 
           {/* STEP 5: 완료 (Done!) */}
-          {room.currentStepIndex === 5 && (
+          {/* STEP 5: 완료 (Done!) */}
+          {room.currentStepIndex === maxStepIndex && (
             <div className="flex-1 flex flex-col justify-center items-center text-center max-w-xl mx-auto space-y-6 animate-scale-in">
               <div className="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl shadow-md animate-bounce">⭐</div>
               
@@ -813,9 +825,9 @@ export default function StudentBoard({
           </button>
 
           <button 
-            disabled={room.currentStepIndex !== 4}
+            disabled={room.currentStepIndex !== votingStepIndex}
             className={`flex flex-col items-center gap-1 transition-all ${
-              room.currentStepIndex === 4 ? "opacity-100 hover:scale-105" : "opacity-30 cursor-not-allowed"
+              room.currentStepIndex === votingStepIndex ? "opacity-100 hover:scale-105" : "opacity-30 cursor-not-allowed"
             }`}
           >
             <div className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center bg-slate-50">
@@ -826,9 +838,9 @@ export default function StudentBoard({
         </div>
 
         {/* Central mic recording toggle button */}
-        {room.currentStepIndex === 1 ? (
+        {isQuestionStep && stageIndex === 0 ? (
           (() => {
-            const hasSubmittedPostIt = group?.postits.some((p) => p.studentName === student.name) || false;
+            const hasSubmittedPostIt = group?.postits.some((p) => p.studentName === student.name && p.questionId === currentQuestionIndex) || false;
             return (
               <button 
                 type="button"

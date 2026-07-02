@@ -18,6 +18,8 @@ interface TeacherDashboardProps {
     stepPrompts: string[];
     hasArtifact: boolean;
     groupCount: number;
+    questions?: string[];
+    hasVote?: boolean;
   }) => Promise<void>;
   onBack?: () => void;
 }
@@ -36,12 +38,30 @@ export default function TeacherDashboard({
 }: TeacherDashboardProps) {
   const [activeTab, setActiveTab] = useState<"dashboard" | "lobby" | "board">("dashboard");
 
+  // Dynamic calculations based on questions count and hasVote option
+  const questionsCount = room.questions?.length || 1;
+  const maxStepIndex = questionsCount * 3 + (room.hasVote ? 1 : 0) + 1;
+
   // Sum of postits across all groups
   const totalPostIts = room.groups.reduce((acc, g) => acc + g.postits.length, 0);
 
   // Active student count
   const activeStudents = room.students.filter((s) => s.active).length;
   const totalStudents = room.students.length;
+
+  const getStepDescription = (stepIndex: number) => {
+    if (stepIndex === 0) return "로비 대기";
+    if (stepIndex >= 1 && stepIndex <= questionsCount * 3) {
+      const qIdx = Math.floor((stepIndex - 1) / 3);
+      const stageIdx = (stepIndex - 1) % 3;
+      const stageName = ["생각 시간", "발표 추첨", "의견 모으기"][stageIdx];
+      return `Q${qIdx + 1}: ${stageName}`;
+    }
+    if (room.hasVote && stepIndex === questionsCount * 3 + 1) {
+      return "미니 투표";
+    }
+    return "토의 종료";
+  };
 
   // Calculate avg mood dynamically
   const getAverageMood = () => {
@@ -53,7 +73,7 @@ export default function TeacherDashboard({
 
   // Next step click handler
   const handleNextStep = () => {
-    if (room.currentStepIndex < 5) {
+    if (room.currentStepIndex < maxStepIndex) {
       onStepChange(room.currentStepIndex + 1);
     } else {
       alert("이미 마지막 단계입니다!");
@@ -84,12 +104,15 @@ export default function TeacherDashboard({
 
     // Section 2: Detailed Post-its list
     csvContent += "--- 학생별 등록 의견 (포스트잇 데이터) ---\n";
-    csvContent += "모둠명,학생 이름,의견 내용,받은 격려 하트 수,음성인식 여부\n";
+    csvContent += "모둠명,학생 이름,질문 구분,의견 내용,받은 격려 하트 수,음성인식 여부\n";
     room.groups.forEach((g) => {
       g.postits.forEach((p) => {
         // Remove commas to prevent CSV breaking
         const sanitizedText = p.text.replace(/,/g, " ");
-        csvContent += `${g.name},${p.studentName},"${sanitizedText}",${p.likes}개,${p.sttCorrected ? "네(STT)" : "아니오(자판)"}\n`;
+        const qText = p.questionId !== undefined && room.questions && room.questions[p.questionId]
+          ? `Q${p.questionId + 1}: ${room.questions[p.questionId]}`
+          : "기타";
+        csvContent += `${g.name},${p.studentName},"${qText}","${sanitizedText}",${p.likes}개,${p.sttCorrected ? "네(STT)" : "아니오(자판)"}\n`;
       });
     });
     csvContent += "\n";
@@ -151,11 +174,7 @@ export default function TeacherDashboard({
           <p className="font-sans text-xs text-slate-400 mt-1">
             {room.currentStepIndex === 0
               ? "현재 단계: 대기 중"
-              : `${room.currentStepIndex}단계: ${
-                  ["대기실", "생각 정리", "발표자 추첨", "생각 모으기", "미니 투표", "토의 완료"][
-                    room.currentStepIndex
-                  ]
-                }`}
+              : `${room.currentStepIndex}단계: ${getStepDescription(room.currentStepIndex)}`}
           </p>
         </div>
 
@@ -273,7 +292,7 @@ export default function TeacherDashboard({
                 <span className="material-symbols-outlined">chevron_left</span>
               </button>
               <span className="font-headline font-bold text-xs px-2 text-slate-800">
-                {room.currentStepIndex}/5단계
+                {room.currentStepIndex}/{maxStepIndex}단계
               </span>
               <button
                 onClick={handleNextStep}
@@ -337,30 +356,43 @@ export default function TeacherDashboard({
             </section>
 
             {/* Step Sequence Guide banner */}
-            <section className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-2 items-center justify-between text-sm text-slate-700">
+            <section className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-2 items-center justify-between text-xs text-slate-700">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-slate-500">info</span>
                 <span className="font-bold text-slate-800">
-                  수업 단계 동기화: {["로비 대기", "생각 시간", "발표자 추첨", "생각 모으기", "미니 투표", "토의 종료"][room.currentStepIndex]}
+                  수업 단계 동기화: {getStepDescription(room.currentStepIndex)}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-headline font-bold">
-                <span className={`${room.currentStepIndex === 1 ? "text-primary-brand" : "text-slate-400"}`}>1.생각 시간 ➡️</span>
-                <span className={`${room.currentStepIndex === 2 ? "text-primary-brand" : "text-slate-400"}`}>2.발표 추첨 ➡️</span>
-                <span className={`${room.currentStepIndex === 3 ? "text-primary-brand" : "text-slate-400"}`}>3.생각 모으기 ➡️</span>
-                <span className={`${room.currentStepIndex === 4 ? "text-primary-brand" : "text-slate-400"}`}>4.미니 투표 ➡️</span>
-                <span className={`${room.currentStepIndex === 5 ? "text-primary-brand" : "text-slate-400"}`}>5.완료</span>
+              <div className="flex items-center gap-2 font-headline font-bold flex-wrap">
+                {Array.from({ length: maxStepIndex + 1 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`${
+                      room.currentStepIndex === i ? "text-primary-brand underline" : "text-slate-400"
+                    }`}
+                  >
+                    {i === 0 ? "로비" : getStepDescription(i)}
+                    {i < maxStepIndex && " ➡️ "}
+                  </span>
+                ))}
               </div>
             </section>
 
             {/* Active Character Prompt Bubbles for Teacher */}
-            {room.currentStepIndex > 0 && room.currentStepIndex < 5 && (
+            {room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3 && (
               <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3.5 text-slate-700 opinion-card animate-scale-in">
                 <MascotIcon character={room.character} size="sm" className="shrink-0" />
                 <div className="space-y-1 text-left">
                   <span className="block text-xs font-bold text-amber-800">💬 현재 {room.characterName} 사회자가 학생에게 띄우는 발문</span>
                   <p className="font-sans text-sm font-bold text-slate-800 leading-relaxed">
-                    "{room.stepPrompts ? room.stepPrompts[room.currentStepIndex - 1] : ""}"
+                    {(() => {
+                      const qIdx = Math.floor((room.currentStepIndex - 1) / 3);
+                      const currentQ = room.questions && room.questions[qIdx] ? room.questions[qIdx] : room.topic;
+                      const stageIdx = (room.currentStepIndex - 1) % 3;
+                      if (stageIdx === 0) return `"${currentQ}" 주제에 대해 생각을 카드에 적어 붙여보자! 💡`;
+                      if (stageIdx === 1) return `"${currentQ}" 의견 발표자를 추천기로 정해서 생각을 나눠보자! 🎤`;
+                      return `친구들의 "${currentQ}" 카드 중 마음에 드는 좋은 의견에 하트를 눌러보자! ❤️`;
+                    })()}
                   </p>
                 </div>
               </div>
@@ -373,6 +405,15 @@ export default function TeacherDashboard({
                 
                 // Determine custom badge state
                 const isWarningState = group.alertType === "warning" || group.activityLevel === "low";
+
+                // Filter group postits for the current question if in a question step
+                const currentQuestionIndex = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3
+                  ? Math.floor((room.currentStepIndex - 1) / 3)
+                  : null;
+
+                const filteredPostIts = currentQuestionIndex !== null
+                  ? group.postits.filter(p => p.questionId === currentQuestionIndex)
+                  : group.postits;
 
                 return (
                   <div
@@ -427,12 +468,12 @@ export default function TeacherDashboard({
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-500 font-medium">제출 포스트잇:</span>
-                        <span className="font-bold text-slate-800">{group.postits.length} 개</span>
+                        <span className="text-slate-500 font-medium">현재 질문 제출:</span>
+                        <span className="font-bold text-slate-800">{filteredPostIts.length} 개</span>
                       </div>
                     </div>
 
-                    {/* Mini Board Preview matching mockup! */}
+                    {/* Mini Board Preview */}
                     <div className="h-28 bg-slate-100 rounded-xl relative overflow-hidden flex items-center justify-center p-2">
                       <div
                         className="absolute inset-0 opacity-15 pointer-events-none"
@@ -441,11 +482,11 @@ export default function TeacherDashboard({
                           backgroundSize: "8px 8px",
                         }}
                       ></div>
-                      {group.postits.length === 0 ? (
-                        <div className="text-xs text-slate-400 font-bold font-sans">명단 작성 중</div>
+                      {filteredPostIts.length === 0 ? (
+                        <div className="text-xs text-slate-400 font-bold font-sans">의견 작성 대기중</div>
                       ) : (
                         <div className="flex flex-wrap gap-2 justify-center max-w-[160px]">
-                          {group.postits.map((p) => (
+                          {filteredPostIts.map((p) => (
                             <div
                               key={p.id}
                               className="w-6 h-6 rounded shadow-sm border border-black/5"
