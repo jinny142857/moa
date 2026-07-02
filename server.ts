@@ -17,14 +17,20 @@ app.use(express.json());
 // Initialize Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
-const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+let supabase: any = null;
+
+try {
+  if (supabaseUrl && supabaseUrl.startsWith("http") && supabaseAnonKey) {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+  }
+} catch (err) {
+  console.error("⚠️ Failed to initialize Supabase client:", err);
+}
 
 if (supabase) {
   console.log("✅ Supabase client initialized successfully.");
 } else {
-  console.warn("⚠️ Supabase not configured. Using local file storage only.");
+  console.warn("⚠️ Supabase not configured or invalid URL. Using local file storage only.");
 }
 
 // Initialize Gemini SDK lazily
@@ -365,7 +371,7 @@ app.get("/api/auth/google/url", (req, res) => {
 });
 
 // Teacher Google Login OAuth callback handler
-app.get(["/auth/callback", "/auth/callback/"], async (req, res) => {
+app.get(["/auth/callback", "/auth/callback/", "/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
   const { code } = req.query;
   let user = { name: "지연 선생님", email: "jinny142857@gmail.com", picture: "" };
   
