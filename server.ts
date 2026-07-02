@@ -269,6 +269,21 @@ app.post("/api/rooms/create", (req, res) => {
   res.json({ roomId, room: newRoom });
 });
 
+// --- Preset Debugging/Diagnostic Endpoint ---
+app.get("/api/debug-supabase", (req, res) => {
+  const rawUrl = process.env.SUPABASE_URL || "";
+  const rawKey = process.env.SUPABASE_ANON_KEY || "";
+  res.json({
+    urlConfigured: !!rawUrl,
+    keyConfigured: !!rawKey,
+    urlLength: rawUrl.length,
+    keyLength: rawKey.length,
+    urlStart: rawUrl.substring(0, 12),
+    cleanedUrlStart: supabaseUrl ? supabaseUrl.substring(0, 12) : "null",
+    isClientInitialized: supabase !== null,
+  });
+});
+
 // --- Preset Management APIs (Supabase backend synchronization) ---
 app.get("/api/presets", async (req, res) => {
   const { email } = req.query;
