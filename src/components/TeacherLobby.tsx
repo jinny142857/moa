@@ -150,6 +150,7 @@ export default function TeacherLobby({
             studentInput: newPreset.studentInput
           })
         });
+        
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
@@ -167,10 +168,19 @@ export default function TeacherLobby({
             setPresetNameInput("");
             alert("프리셋이 Supabase 데이터베이스에 영구히 저장되었습니다!");
             return;
+          } else {
+            alert(`데이터베이스 저장 실패: ${data.error}`);
+            return;
           }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert(`서버 에러 (${res.status}): ${errData.error || "프리셋 저장 실패"}`);
+          return;
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to save preset to database:", err);
+        alert(`네트워크 통신 오류: ${err.message || String(err)}`);
+        return;
       }
     }
 
@@ -179,7 +189,7 @@ export default function TeacherLobby({
     setPresets(updated);
     localStorage.setItem("moa_presets", JSON.stringify(updated));
     setPresetNameInput("");
-    alert("프리셋이 브라우저 로컬 저장소에 저장되었습니다!");
+    alert("로그인 정보가 없어 프리셋을 브라우저 로컬 저장소에 저장했습니다!");
   };
 
   const handleLoadPreset = (preset: SavedPreset) => {
