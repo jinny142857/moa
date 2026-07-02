@@ -150,43 +150,47 @@ export default function StudentJoin({ onJoin, error: externalError, onBack }: St
               </p>
             </div>
 
-            {/* Quick Name Picker for inactive students */}
-            {roomData && roomData.students.length > 0 && (
+            {/* 선생님이 명단을 등록해둔 경우 이름 선택 버튼만 보여주고 직접 입력은 숨겨 가독성을 극대화합니다. */}
+            {roomData && roomData.students.length > 0 ? (
               <div className="space-y-2">
                 <label className="block font-headline font-bold text-slate-600 text-xs">
-                  이름 고르기
+                  내 이름 선택하기
                 </label>
-                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto bg-white/30 p-2.5 rounded-xl border border-white/40">
+                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto bg-white/40 p-3 rounded-2xl border border-slate-200">
                   {roomData.students
                     .filter((s) => !s.active)
                     .map((s, idx) => (
                       <button
                         key={`${s.name}-${idx}`}
+                        type="button"
                         onClick={() => setName(s.name)}
-                        className={`px-3 py-1.5 rounded-lg font-headline text-sm font-bold border-2 transition-all ${
+                        className={`px-3.5 py-2 rounded-xl font-headline text-sm font-bold border-2 transition-all ${
                           name === s.name
-                            ? "bg-primary-brand border-primary-brand text-white scale-105 shadow-sm"
-                            : "bg-white/60 border-slate-200/60 text-slate-700 hover:border-amber-200"
+                            ? "bg-primary-brand border-primary-brand text-white scale-105 shadow-md"
+                            : "bg-white border-slate-200 text-slate-700 hover:border-amber-300"
                         }`}
                       >
                         {s.name}
                       </button>
                     ))}
+                  {roomData.students.filter((s) => !s.active).length === 0 && (
+                    <p className="text-xs text-slate-400 font-medium py-2">모든 등록된 학생이 이미 입장했습니다!</p>
+                  )}
                 </div>
               </div>
+            ) : (
+              /* 명단이 비어있는 경우에만 직접 입력 상자를 띄워 명단 등록의 존재 의미를 명확히 정립합니다. */
+              <div className="space-y-2">
+                <label className="block font-headline font-bold text-slate-600 text-xs">이름 입력</label>
+                <input
+                  type="text"
+                  className="w-full bg-white/50 border-2 border-slate-200/60 rounded-xl px-4 py-3 font-sans text-sm focus:bg-white focus:border-amber-400 outline-none transition-all shadow-inner"
+                  placeholder="이름을 직접 적어주세요."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
             )}
-
-            {/* Direct Input */}
-            <div className="space-y-2">
-              <label className="block font-headline font-bold text-slate-600 text-xs">직접 입력</label>
-              <input
-                type="text"
-                className="w-full bg-white/50 border-2 border-slate-200/60 rounded-xl px-4 py-3 font-sans text-sm focus:bg-white focus:border-amber-400 outline-none transition-all shadow-inner"
-                placeholder="이름을 직접 적어주세요."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
 
             {/* Avatar & Color Picker */}
             <div className="space-y-3">

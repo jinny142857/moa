@@ -869,6 +869,11 @@ app.post("/api/rooms/:roomId/step", (req, res) => {
     } else if (stageIndex === 1) {
       duration = 240; // 발표자 뽑기 4분
       phaseName = `질문 ${questionIndex + 1}: 발표자 뽑기`;
+      // 새 질문 단계가 시작될 때마다 모든 모둠의 랜덤 발표 이력 및 현재 스피커 상태를 완벽히 초기화합니다.
+      room.groups.forEach((g) => {
+        g.currentSpeaker = null;
+        g.drawnSpeakers = [];
+      });
     } else if (stageIndex === 2) {
       duration = 300; // 생각 모으기 5분
       phaseName = `질문 ${questionIndex + 1}: 생각 모으기`;
