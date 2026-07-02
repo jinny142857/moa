@@ -60,34 +60,64 @@ export default function TeacherLobby({
   const [presetNameInput, setPresetNameInput] = useState("");
 
   useEffect(() => {
-    // Load presets from localStorage
-    const saved = localStorage.getItem("moa_presets");
-    if (saved) {
-      try {
-        setPresets(JSON.parse(saved));
-      } catch (e) {}
-    } else {
-      // Default initial preset
-      const defaultPreset: SavedPreset = {
-        id: "default-env",
-        name: "🌱 환경 보호 실천 토의 기본 세트",
-        topic: "우리가 실천할 수 있는 환경 보호 방법은 무엇일까요?",
-        stepPrompts: [],
-        hasArtifact: true,
-        groupCount: 6,
-        studentInput: "민준, 서연, 도윤, 하은, 주원, 지우, 예준, 수아, 준우, 서아, 지호, 민지, 선우, 유진, 도현, 채원, 시우, 서현, 지훈, 하윤, 지호2, 민수",
-        questions: [
-          "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
-          "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
-        ],
-        hasVote: true
-      };
-      setPresets([defaultPreset]);
-      localStorage.setItem("moa_presets", JSON.stringify([defaultPreset]));
-    }
-  }, []);
+    const fetchPresets = async () => {
+      if (teacherUser?.email) {
+        try {
+          const res = await fetch(`/api/presets?email=${encodeURIComponent(teacherUser.email)}`);
+          if (res.ok) {
+            const data = await res.json();
+            // Map table snake_case keys back to camelCase
+            const mapped = data.map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              topic: p.topic,
+              questions: p.questions,
+              hasVote: p.has_vote !== undefined ? p.has_vote : true,
+              hasArtifact: p.has_artifact !== undefined ? p.has_artifact : false,
+              groupCount: p.group_count || 6,
+              studentInput: p.student_input || "",
+            }));
+            if (mapped.length > 0) {
+              setPresets(mapped);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to load presets from database, falling back to local storage:", e);
+        }
+      }
 
-  const handleSavePreset = () => {
+      // Load presets from localStorage as fallback
+      const saved = localStorage.getItem("moa_presets");
+      if (saved) {
+        try {
+          setPresets(JSON.parse(saved));
+        } catch (e) {}
+      } else {
+        // Default initial preset
+        const defaultPreset: SavedPreset = {
+          id: "default-env",
+          name: "🌱 환경 보호 실천 토의 기본 세트",
+          topic: "우리가 실천할 수 있는 환경 보호 방법은 무엇일까요?",
+          stepPrompts: [],
+          hasArtifact: true,
+          groupCount: 6,
+          studentInput: "민준, 서연, 도윤, 하은, 주원, 지우, 예준, 수아, 준우, 서아, 지호, 민지, 선우, 유진, 도현, 채원, 시우, 서현, 지훈, 하윤, 지호2, 민수",
+          questions: [
+            "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
+            "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
+          ],
+          hasVote: true
+        };
+        setPresets([defaultPreset]);
+        localStorage.setItem("moa_presets", JSON.stringify([defaultPreset]));
+      }
+    };
+
+    fetchPresets();
+  }, [teacherUser]);
+
+  const handleSavePreset = async () => {
     if (!presetNameInput.trim()) {
       alert("저장할 프리셋 이름을 입력해주세요!");
       return;
@@ -103,11 +133,53 @@ export default function TeacherLobby({
       questions,
       hasVote,
     };
+
+    if (teacherUser?.email) {
+      try {
+        const res = await fetch("/api/presets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: teacherUser.email,
+            name: newPreset.name,
+            topic: newPreset.topic,
+            questions: newPreset.questions,
+            hasVote: newPreset.hasVote,
+            hasArtifact: newPreset.hasArtifact,
+            groupCount: newPreset.groupCount,
+            studentInput: newPreset.studentInput
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            const savedDbPreset: SavedPreset = {
+              id: data.preset.id,
+              name: data.preset.name,
+              topic: data.preset.topic,
+              questions: data.preset.questions,
+              hasVote: data.preset.has_vote,
+              hasArtifact: data.preset.has_artifact,
+              groupCount: data.preset.group_count,
+              studentInput: data.preset.student_input
+            };
+            setPresets([savedDbPreset, ...presets]);
+            setPresetNameInput("");
+            alert("프리셋이 Supabase 데이터베이스에 영구히 저장되었습니다!");
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to save preset to database:", err);
+      }
+    }
+
+    // Fallback save to localStorage
     const updated = [...presets, newPreset];
     setPresets(updated);
     localStorage.setItem("moa_presets", JSON.stringify(updated));
     setPresetNameInput("");
-    alert("프리셋이 성공적으로 저장되었습니다!");
+    alert("프리셋이 브라우저 로컬 저장소에 저장되었습니다!");
   };
 
   const handleLoadPreset = (preset: SavedPreset) => {
@@ -126,9 +198,22 @@ export default function TeacherLobby({
     alert(`"${preset.name}" 프리셋을 불러왔습니다!`);
   };
 
-  const handleDeletePreset = (id: string, e: React.MouseEvent) => {
+  const handleDeletePreset = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("정말 이 프리셋을 삭제하시겠습니까?")) {
+      if (teacherUser?.email && id !== "default-env") {
+        try {
+          const res = await fetch(`/api/presets/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            setPresets(presets.filter(p => p.id !== id));
+            alert("프리셋이 데이터베이스에서 완전히 삭제되었습니다.");
+            return;
+          }
+        } catch (err) {
+          console.error("Failed to delete preset from database:", err);
+        }
+      }
+
       const updated = presets.filter(p => p.id !== id);
       setPresets(updated);
       localStorage.setItem("moa_presets", JSON.stringify(updated));
