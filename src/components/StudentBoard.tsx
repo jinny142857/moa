@@ -154,7 +154,8 @@ export default function StudentBoard({
     rec.lang = "ko-KR";
     // continuous를 true로 설정하여 어린이의 말하기 도중 긴 멈춤(pause)이 있어도 마이크가 꺼지지 않도록 보장합니다.
     rec.continuous = true;
-    rec.interimResults = false;
+    // interimResults를 true로 설정하여 실시간으로 실시간 텍스트 변환을 수집하고 업데이트가 누락되지 않도록 합니다.
+    rec.interimResults = true;
 
     rec.onstart = () => {
       setIsRecording(true);
@@ -168,6 +169,7 @@ export default function StudentBoard({
     rec.onend = async () => {
       setIsRecording(false);
       const textToSubmit = accumulatedTranscriptRef.current.trim();
+      console.log("STT recording ended. Text to submit:", textToSubmit);
       if (!textToSubmit) {
         return;
       }
@@ -198,11 +200,11 @@ export default function StudentBoard({
     rec.onresult = (event: any) => {
       let fullTranscript = "";
       for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          fullTranscript += event.results[i][0].transcript + " ";
-        }
+        // 실시간(중간) 인식 텍스트도 취합하여 누락을 완전히 방지
+        fullTranscript += event.results[i][0].transcript + " ";
       }
       accumulatedTranscriptRef.current = fullTranscript.trim();
+      console.log("STT progress:", accumulatedTranscriptRef.current);
     };
 
     recognitionRef.current = rec;
