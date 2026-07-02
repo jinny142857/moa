@@ -463,30 +463,14 @@ app.get("/auth/mock-google", (req, res) => {
             </svg>
           </div>
           <h2 class="text-xl font-bold text-slate-800 mb-1">Google 계정으로 로그인</h2>
-          <p class="text-xs text-slate-500 mb-6">모두 모아 (MOA) 교사용 계정 선택</p>
+          <p class="text-xs text-slate-500 mb-6">모두 모아 (MOA) 교사용 계정 로그인</p>
           
-          <div class="space-y-3 text-left">
-            <button onclick="selectUser('지연 선생님', 'jinny142857@gmail.com')" class="w-full flex items-center gap-3 p-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">
-              <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-sm">지</div>
-              <div>
-                <div class="text-sm font-bold text-slate-700 font-medium">지연 선생님 (사용자)</div>
-                <div class="text-xs text-slate-500">jinny142857@gmail.com</div>
-              </div>
-            </button>
-            
-            <button onclick="selectUser('이선우 교사', 'sunwoo@school.ek.kr')" class="w-full flex items-center gap-3 p-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">
-              <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">선</div>
-              <div>
-                <div class="text-sm font-bold text-slate-700 font-medium">이선우 선생님</div>
-                <div class="text-xs text-slate-500">sunwoo@school.ek.kr</div>
-              </div>
-            </button>
-
-            <div class="pt-2 border-t border-slate-100">
-              <p class="text-[11px] font-bold text-slate-400 mb-2">다른 구글 계정 직접 입력</p>
+          <div class="space-y-4 text-left">
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-500">이메일 주소 입력</label>
               <div class="flex gap-2">
-                <input type="email" id="custom-email" placeholder="example@gmail.com" class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:border-blue-500" />
-                <button onclick="submitCustom()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">로그인</button>
+                <input type="email" id="custom-email" placeholder="example@gmail.com" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" />
+                <button onclick="submitCustom()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors">로그인</button>
               </div>
             </div>
           </div>

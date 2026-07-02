@@ -34,6 +34,7 @@ export default function StudentBoard({
   const [isRecording, setIsRecording] = useState(false);
   const [sttLoading, setSttLoading] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const accumulatedTranscriptRef = useRef("");
 
   // Slot-Machine Reel Animation States for presenter draw
   const [isSpinning, setIsSpinning] = useState(false);
@@ -112,7 +113,7 @@ export default function StudentBoard({
     }
 
     if (isRecording) {
-      // Stop recording
+      // Stop recording (this will trigger onend automatically)
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -120,9 +121,11 @@ export default function StudentBoard({
       return;
     }
 
+    accumulatedTranscriptRef.current = "";
     const rec = new SpeechRecognition();
     rec.lang = "ko-KR";
-    rec.continuous = false;
+    // continuous를 true로 설정하여 어린이의 말하기 도중 긴 멈춤(pause)이 있어도 마이크가 꺼지지 않도록 보장합니다.
+    rec.continuous = true;
     rec.interimResults = false;
 
     rec.onstart = () => {
@@ -130,36 +133,48 @@ export default function StudentBoard({
     };
 
     rec.onerror = (e: any) => {
-      console.error(e);
+      console.error("Speech Recognition error:", e);
       setIsRecording(false);
     };
 
-    rec.onend = () => {
+    rec.onend = async () => {
       setIsRecording(false);
-    };
+      const textToSubmit = accumulatedTranscriptRef.current.trim();
+      if (!textToSubmit) {
+        return;
+      }
 
-    rec.onresult = async (event: any) => {
-      const resultText = event.results[0][0].transcript;
-      if (!resultText) return;
-
-      setIsRecording(false);
       setSttLoading(true);
-
-      // Post to server for Gemini typo & grammar correction!
       try {
+        // Gemini AI 교정 API 호출
         const res = await fetch(`/api/rooms/${room.roomId}/stt-correct`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: resultText }),
+          body: JSON.stringify({ text: textToSubmit }),
         });
         const data = await res.json();
-        setPostItText((prev) => (prev ? prev + " " + data.correctedText : data.correctedText));
+        const correctedText = data.correctedText || textToSubmit;
+        
+        // 텍스트 변환 후 자동으로 보드(칠판)에 즉시 게시
+        onPostIt(correctedText, postItColor);
       } catch (err) {
-        // Fallback to raw text
-        setPostItText((prev) => (prev ? prev + " " + resultText : resultText));
+        console.error("Failed to correct and submit STT speech card:", err);
+        // 에러 시 원본 텍스트로 보드에 즉시 자동 게시
+        onPostIt(textToSubmit, postItColor);
       } finally {
+        accumulatedTranscriptRef.current = "";
         setSttLoading(false);
       }
+    };
+
+    rec.onresult = (event: any) => {
+      let fullTranscript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          fullTranscript += event.results[i][0].transcript + " ";
+        }
+      }
+      accumulatedTranscriptRef.current = fullTranscript.trim();
     };
 
     recognitionRef.current = rec;
