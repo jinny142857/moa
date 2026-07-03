@@ -23,7 +23,7 @@ interface SavedPreset {
   id: string;
   name: string;
   topic: string;
-  stepPrompts: string[];
+  stepPrompts?: string[];
   hasArtifact: boolean;
   groupCount: number;
   studentInput: string;

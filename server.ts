@@ -23,22 +23,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// 환경변수 양 끝의 따옴표 및 공백을 제거해 주는 공통 유틸리티 함수
+function cleanEnvVar(val: string | undefined): string {
+  if (!val) return "";
+  let cleaned = val.trim();
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1);
+  } else if (cleaned.startsWith("'") && cleaned.endsWith("'")) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  return cleaned.trim();
+}
+
 // Initialize Supabase Client
-let supabaseUrl = (process.env.SUPABASE_URL || "").trim();
-let supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
-
-// 따옴표가 함께 복사되어 환경변수로 등록된 경우를 대비해 양 끝의 따옴표를 정밀 제거합니다.
-if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
-  supabaseUrl = supabaseUrl.slice(1, -1);
-} else if (supabaseUrl.startsWith("'") && supabaseUrl.endsWith("'")) {
-  supabaseUrl = supabaseUrl.slice(1, -1);
-}
-
-if (supabaseAnonKey.startsWith('"') && supabaseAnonKey.endsWith('"')) {
-  supabaseAnonKey = supabaseAnonKey.slice(1, -1);
-} else if (supabaseAnonKey.startsWith("'") && supabaseAnonKey.endsWith("'")) {
-  supabaseAnonKey = supabaseAnonKey.slice(1, -1);
-}
+const supabaseUrl = cleanEnvVar(process.env.SUPABASE_URL);
+const supabaseAnonKey = cleanEnvVar(process.env.SUPABASE_ANON_KEY);
 
 let supabase: any = null;
 
@@ -61,13 +60,7 @@ let ai: any = null;
 function getGeminiClient() {
   if (!ai && process.env.GEMINI_API_KEY) {
     try {
-      let apiKey = process.env.GEMINI_API_KEY.trim();
-      if (apiKey.startsWith('"') && apiKey.endsWith('"')) {
-        apiKey = apiKey.slice(1, -1);
-      } else if (apiKey.startsWith("'") && apiKey.endsWith("'")) {
-        apiKey = apiKey.slice(1, -1);
-      }
-      
+      const apiKey = cleanEnvVar(process.env.GEMINI_API_KEY);
       ai = new GoogleGenAI({
         apiKey: apiKey,
         httpOptions: {
@@ -273,6 +266,9 @@ app.post("/api/rooms/create", (req, res) => {
 app.get("/api/debug-supabase", (req, res) => {
   const rawUrl = process.env.SUPABASE_URL || "";
   const rawKey = process.env.SUPABASE_ANON_KEY || "";
+  const rawGoogleId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || "";
+  const rawGoogleSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET || "";
+  
   res.json({
     urlConfigured: !!rawUrl,
     keyConfigured: !!rawKey,
@@ -281,6 +277,11 @@ app.get("/api/debug-supabase", (req, res) => {
     urlStart: rawUrl.substring(0, 12),
     cleanedUrlStart: supabaseUrl ? supabaseUrl.substring(0, 12) : "null",
     isClientInitialized: supabase !== null,
+    googleIdConfigured: !!rawGoogleId,
+    googleIdLength: rawGoogleId.length,
+    googleIdStart: rawGoogleId.substring(0, 10),
+    googleSecretConfigured: !!rawGoogleSecret,
+    googleSecretLength: rawGoogleSecret.length,
   });
 });
 
@@ -476,7 +477,7 @@ app.post("/api/rooms/:roomId/group/:groupId/artifact", (req, res) => {
 
 // Teacher Google Login API - OAuth URL generator
 app.get("/api/auth/google/url", (req, res) => {
-  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID;
+  const clientId = cleanEnvVar(process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID);
   
   // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
   const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
@@ -510,8 +511,8 @@ app.get(["/auth/callback", "/auth/callback/", "/api/auth/callback", "/api/auth/c
   let user = { name: "지연 선생님", email: "jinny142857@gmail.com", picture: "" };
   
   try {
-    const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET;
+    const clientId = cleanEnvVar(process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID);
+    const clientSecret = cleanEnvVar(process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET);
     
     // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
     const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
