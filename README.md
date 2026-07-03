@@ -5,11 +5,9 @@
 
 ## 📸 서비스 주요 화면 (Screenshots)
 
-| 메인 로비 (진입 화면) | 교사 대기실 (프리셋 빌더) |
-|:---:|:---:|
-| ![메인 로비](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/main_lobby.png) | ![교사 대기실](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/teacher_lobby.png) |
-| **학생 모둠 칠판 (실시간 토의)** | **교사 실시간 관제 대시보드** |
-| ![학생 모둠 칠판](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/student_board.png) | ![교사 대시보드](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/teacher_dashboard.png) |
+| 메인 로비 (진입 화면) | 학생 모둠 칠판 (실시간 토의) | 교사 실시간 관제 대시보드 |
+|:---:|:---:|:---:|
+| ![메인 로비](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/main_lobby.png) | ![학생 모둠 칠판](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/student_board.png) | ![교사 대시보드](https://raw.githubusercontent.com/jinny142857/moa/main/screenshots/teacher_dashboard.png) |
 
 ---
 
