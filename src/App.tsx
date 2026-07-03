@@ -18,8 +18,55 @@ export default function App() {
     onConfirm: () => void;
   } | null>(null);
 
+  const [documentModal, setDocumentModal] = useState<{ title: string; type: "terms" | "privacy" | null }>({ title: "", type: null });
+  const [modalText, setModalText] = useState("");
+
+  const openDocumentModal = async (type: "terms" | "privacy", title: string) => {
+    try {
+      const res = await fetch(`/api/${type}`);
+      const text = await res.text();
+      setModalText(text);
+      setDocumentModal({ title, type });
+    } catch (e) {
+      alert("문서를 불러오는 중 오류가 발생했습니다.");
+    }
+  };
+
   const triggerConfirm = (message: string, onConfirm: () => void) => {
     setConfirmModal({ message, onConfirm });
+  };
+
+  const renderDocumentModal = () => {
+    if (!documentModal.type) return null;
+    return (
+      <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fade-in select-none">
+        <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/60 flex flex-col max-h-[80vh] animate-scale-in">
+          <header className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
+            <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+              <span className="material-symbols-outlined text-orange-500">description</span>
+              {documentModal.title}
+            </h3>
+            <button
+              onClick={() => setDocumentModal({ title: "", type: null })}
+              className="p-1.5 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-700 transition-colors"
+            >
+              <span className="material-symbols-outlined text-md">close</span>
+            </button>
+          </header>
+          <div className="p-6 overflow-y-auto font-sans text-xs text-slate-600 leading-relaxed whitespace-pre-wrap select-text text-left">
+            {modalText}
+          </div>
+          <footer className="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50 rounded-b-3xl">
+            <button
+              onClick={() => setDocumentModal({ title: "", type: null })}
+              className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-full shadow-sm active:translate-y-0.5 transition-all"
+            >
+              닫기
+            </button>
+          </footer>
+        </div>
+      </div>
+    );
   };
 
   const renderConfirmModal = () => {
@@ -485,40 +532,40 @@ export default function App() {
   // Render role selection screen (landing page)
   if (!role) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-2xl text-center space-y-8">
-          <header className="space-y-4">
-            <div className="inline-block p-4 mb-2">
-              <MascotIcon character="moa" size="xl" className="mx-auto mascot-float" />
+      <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col justify-between p-4 md:p-6 select-none">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full space-y-4 md:space-y-6">
+          <header className="text-center space-y-2">
+            <div className="inline-block p-2">
+              <MascotIcon character="moa" size="lg" className="mx-auto mascot-float" />
             </div>
-            <h1 className="font-headline text-4xl md:text-5xl font-black text-primary-brand tracking-tight">
+            <h1 className="font-headline text-3xl md:text-4xl font-black text-primary-brand tracking-tight">
               모 두 모 아 (MOA)
             </h1>
-            <div className="space-y-2">
-              <p className="font-headline font-black text-xl md:text-2xl text-amber-500 italic max-w-md mx-auto">
+            <div className="space-y-1">
+              <p className="font-headline font-black text-lg md:text-xl text-amber-500 italic max-w-md mx-auto">
                 More Opinions, All together!
               </p>
-              <p className="font-sans text-md md:text-lg text-slate-700 max-w-md mx-auto leading-relaxed">
+              <p className="font-sans text-xs md:text-sm text-slate-700 max-w-md mx-auto leading-relaxed">
                 더 많은 의견을 모두 다 함께!<br />
-                <span className="text-primary-brand/80 font-bold text-xs bg-white/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/40 shadow-sm inline-block mt-2">
+                <span className="text-primary-brand/80 font-bold text-[10px] bg-white/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/40 shadow-sm inline-block mt-1">
                   초등학교 실시간 협력 토의 지원 웹앱
                 </span>
               </p>
             </div>
           </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full pt-2">
             {/* Start as Student */}
             <button
               onClick={() => setRole("student")}
-              className="glass-panel flex flex-col items-center justify-center p-8 bg-white/40 border-2 border-white/50 rounded-3xl hover:scale-[1.03] transition-all text-center space-y-4 shadow-lg group"
+              className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
             >
-              <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-4xl">school</span>
+              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-3xl">school</span>
               </div>
               <div>
-                <h3 className="font-headline text-2xl font-black text-slate-800">학생 시작하기</h3>
-                <p className="font-sans text-xs text-slate-500 mt-2 leading-relaxed">
+                <h3 className="font-headline text-lg font-black text-slate-800">학생 시작하기</h3>
+                <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
                   선생님이 주신 6자리 코드를 입력하고,<br />
                   모둠 토의방에 참여합니다.
                 </p>
@@ -528,14 +575,14 @@ export default function App() {
             {/* Start as Teacher */}
             <button
               onClick={() => setRole("teacher")}
-              className="glass-panel flex flex-col items-center justify-center p-8 bg-white/40 border-2 border-white/50 rounded-3xl hover:scale-[1.03] transition-all text-center space-y-4 shadow-lg group"
+              className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
             >
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-inner group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-4xl">co_present</span>
+              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-inner group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-3xl">co_present</span>
               </div>
               <div>
-                <h3 className="font-headline text-2xl font-black text-slate-800">교사 시작하기</h3>
-                <p className="font-sans text-xs text-slate-500 mt-2 leading-relaxed">
+                <h3 className="font-headline text-lg font-black text-slate-800">교사 시작하기</h3>
+                <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
                   새로운 토론 주제를 개설하고,<br />
                   학생 참여를 실시간 모니터링합니다.
                 </p>
@@ -544,11 +591,21 @@ export default function App() {
           </div>
 
           {/* 푸터 영역 */}
-          <footer className="mt-16 text-center max-w-2xl mx-auto w-full text-slate-400 font-sans text-[11px] space-y-2 border-t border-slate-200/60 pt-6">
-            <div className="flex justify-center gap-4 text-slate-500 font-bold mb-1">
-              <a href="/api/terms" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">이용약관</a>
+          <footer className="w-full text-center text-slate-400 font-sans text-[10px] space-y-1.5 border-t border-slate-200/60 pt-4 mt-2">
+            <div className="flex justify-center gap-4 text-slate-500 font-bold">
+              <button
+                onClick={() => openDocumentModal("terms", "이용약관")}
+                className="hover:text-amber-600 transition-colors"
+              >
+                이용약관
+              </button>
               <span className="text-slate-300">|</span>
-              <a href="/api/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">개인정보처리방침</a>
+              <button
+                onClick={() => openDocumentModal("privacy", "개인정보처리방침")}
+                className="hover:text-amber-600 transition-colors"
+              >
+                개인정보처리방침
+              </button>
             </div>
             <p className="leading-relaxed text-slate-400/80">
               책임자: 서울원광초등학교 교사 나혜진
