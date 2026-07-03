@@ -546,9 +546,9 @@ export default function App() {
           {/* 푸터 영역 */}
           <footer className="mt-16 text-center max-w-2xl mx-auto w-full text-slate-400 font-sans text-[11px] space-y-2 border-t border-slate-200/60 pt-6">
             <div className="flex justify-center gap-4 text-slate-500 font-bold mb-1">
-              <a href="/이용약관.md" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">이용약관</a>
+              <a href="/api/이용약관.md" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">이용약관</a>
               <span className="text-slate-300">|</span>
-              <a href="/개인정보처리방침.md" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">개인정보처리방침</a>
+              <a href="/api/개인정보처리방침.md" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 transition-colors">개인정보처리방침</a>
             </div>
             <p className="leading-relaxed text-slate-400/80">
               책임자: 서울원광초등학교 교사 나혜진
