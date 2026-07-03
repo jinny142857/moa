@@ -177,6 +177,7 @@ export default function App() {
       setRoom(data.room);
       localStorage.setItem("moa_role", "teacher");
       localStorage.setItem("moa_room_id", data.roomId);
+      localStorage.setItem("moa_active_room_id", data.roomId); // 진행 중인 활성 방으로 기억
       connectSSE(data.roomId);
     } catch (err) {
       setError("방 생성 도중 오류가 발생했습니다.");

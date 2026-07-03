@@ -59,6 +59,15 @@ export default function TeacherLobby({
   const [presets, setPresets] = useState<SavedPreset[]>([]);
   const [presetNameInput, setPresetNameInput] = useState("");
 
+  // 진행 중인 activeRoomId 불러오기
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  useEffect(() => {
+    const savedActiveRoom = localStorage.getItem("moa_active_room_id");
+    if (savedActiveRoom) {
+      setActiveRoomId(savedActiveRoom);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchPresets = async () => {
       if (teacherUser?.email) {
@@ -294,6 +303,46 @@ export default function TeacherLobby({
         </header>
 
         <div className="space-y-6">
+          {/* Active Room Re-enter Banner */}
+          {activeRoomId && (
+            <div className="glass-panel p-6 border-2 border-emerald-400 bg-emerald-50/40 rounded-3xl text-left animate-fade-in flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="space-y-1">
+                <h3 className="font-headline text-lg font-bold text-emerald-800 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 animate-pulse">play_circle</span>
+                  📢 진행 중인 토의방이 존재합니다!
+                </h3>
+                <p className="text-xs text-emerald-600 font-medium">
+                  이전에 개설한 토의방(코드: <strong className="text-emerald-700 font-extrabold">{activeRoomId}</strong>)이 서버에서 계속 실행 중입니다. 대시보드로 돌아가시겠습니까?
+                </p>
+              </div>
+              <div className="flex gap-2 w-full md:w-auto shrink-0">
+                <button
+                  onClick={() => {
+                    localStorage.setItem("moa_role", "teacher");
+                    localStorage.setItem("moa_room_id", activeRoomId);
+                    window.location.reload();
+                  }}
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-headline text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">dashboard</span>
+                  대시보드 복귀
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("진행 중인 토의방의 빠른 복귀 링크를 제거하시겠습니까? (서버의 토의방은 초기화되지 않습니다)")) {
+                      localStorage.removeItem("moa_active_room_id");
+                      setActiveRoomId(null);
+                    }
+                  }}
+                  className="px-3 py-2.5 bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-xl transition-all"
+                  title="링크 제거"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Preset Management Panel */}
           <div className="glass-panel p-6 bg-amber-50/30 border border-amber-200/50 space-y-4">
             <div className="flex justify-between items-center">

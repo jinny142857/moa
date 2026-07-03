@@ -224,8 +224,19 @@ export default function StudentBoard({
   const handlePostItSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!postItText.trim()) return;
+
+    // 만약 음성인식 녹음이 활성화되어 있었다면, 중복 제출을 막기 위해 음성인식을 먼저 깔끔하게 꺼줍니다.
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null; // onend가 중복 제출하는 걸 방지
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+    }
+
     onPostIt(postItText, postItColor);
     setPostItText("");
+    accumulatedTranscriptRef.current = "";
   };
 
   if (!group) {
@@ -561,13 +572,29 @@ export default function StudentBoard({
                     <p className="text-xs text-slate-400">
                       친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
                     </p>
-                    <button
-                      type="button"
-                      onClick={onDrawSpeaker}
-                      className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-full shadow-sm"
-                    >
-                      다음 발표자 또 뽑기 🎲
-                    </button>
+                    {group.drawnSpeakers.length === activeGroupStudents.length ? (
+                      <div className="text-xs text-emerald-600 font-bold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 inline-block animate-bounce">
+                        🎉 모든 모둠원이 발표를 완료했습니다!
+                      </div>
+                    ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
+                      <button
+                        type="button"
+                        onClick={onDrawSpeaker}
+                        className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-full shadow-md animate-pulse flex items-center gap-1.5 mx-auto"
+                      >
+                        <span className="material-symbols-outlined text-sm">face</span>
+                        마지막 발표자 확인하기 🎤
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onDrawSpeaker}
+                        className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-full shadow-sm flex items-center gap-1.5 mx-auto"
+                      >
+                        <span className="material-symbols-outlined text-xs">casino</span>
+                        다음 발표자 또 뽑기 🎲
+                      </button>
+                    )}
                   </div>
                 ) : (
                   /* 🎲 IDLE / INITIAL SLOT MACHINE CABINET WITH PULL LEVER */
@@ -592,7 +619,7 @@ export default function StudentBoard({
                         onClick={onDrawSpeaker}
                         className="w-full h-12 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-sm font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1.5 border-b-2 border-orange-700"
                       >
-                        🎲 랜덤 추첨 슬롯 돌리기
+                        {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
                       </button>
                     </div>
 
