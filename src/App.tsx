@@ -624,90 +624,93 @@ export default function App() {
   // Render role selection screen (landing page)
   if (!role) {
     return (
-      <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col justify-between p-4 md:p-6 select-none">
-        <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full space-y-4 md:space-y-6">
-          <header className="text-center space-y-2">
-            <div className="inline-block p-2">
-              <MascotIcon character="moa" size="lg" className="mx-auto mascot-float" />
-            </div>
-            <h1 className="font-headline text-3xl md:text-4xl font-black text-primary-brand tracking-tight">
-              모 두 모 아 (MOA)
-            </h1>
-            <div className="space-y-1">
-              <p className="font-headline font-black text-lg md:text-xl text-amber-500 italic max-w-md mx-auto">
-                More Opinions, All together!
-              </p>
-              <p className="font-sans text-xs md:text-sm text-slate-700 max-w-md mx-auto leading-relaxed">
-                더 많은 의견을 모두 다 함께!<br />
-                <span className="text-primary-brand/80 font-bold text-[10px] bg-white/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/40 shadow-sm inline-block mt-1">
-                  초등학교 실시간 협력 토의 지원 웹앱
-                </span>
-              </p>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full pt-2">
-            {/* Start as Student */}
-            <button
-              onClick={() => setRole("student")}
-              className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-3xl">school</span>
+      <>
+        <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col justify-between p-4 md:p-6 select-none">
+          <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full space-y-4 md:space-y-6">
+            <header className="text-center space-y-2">
+              <div className="inline-block p-2">
+                <MascotIcon character="moa" size="lg" className="mx-auto mascot-float" />
               </div>
-              <div>
-                <h3 className="font-headline text-lg font-black text-slate-800">학생 시작하기</h3>
-                <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
-                  선생님이 주신 6자리 코드를 입력하고,<br />
-                  모둠 토의방에 참여합니다.
+              <h1 className="font-headline text-3xl md:text-4xl font-black text-primary-brand tracking-tight">
+                모 두 모 아 (MOA)
+              </h1>
+              <div className="space-y-1">
+                <p className="font-headline font-black text-lg md:text-xl text-amber-500 italic max-w-md mx-auto">
+                  More Opinions, All together!
+                </p>
+                <p className="font-sans text-xs md:text-sm text-slate-700 max-w-md mx-auto leading-relaxed">
+                  더 많은 의견을 모두 다 함께!<br />
+                  <span className="text-primary-brand/80 font-bold text-[10px] bg-white/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/40 shadow-sm inline-block mt-1">
+                    초등학교 실시간 협력 토의 지원 웹앱
+                  </span>
                 </p>
               </div>
-            </button>
+            </header>
 
-            {/* Start as Teacher */}
-            <button
-              onClick={() => setRole("teacher")}
-              className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-inner group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-3xl">co_present</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full pt-2">
+              {/* Start as Student */}
+              <button
+                onClick={() => setRole("student")}
+                className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner group-hover:scale-105 transition-transform">
+                  <span className="material-symbols-outlined text-3xl">school</span>
+                </div>
+                <div>
+                  <h3 className="font-headline text-lg font-black text-slate-800">학생 시작하기</h3>
+                  <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
+                    선생님이 주신 6자리 코드를 입력하고,<br />
+                    모둠 토의방에 참여합니다.
+                  </p>
+                </div>
+              </button>
+
+              {/* Start as Teacher */}
+              <button
+                onClick={() => setRole("teacher")}
+                className="glass-panel flex flex-col items-center justify-center p-5 bg-white/40 border border-white/50 rounded-2xl hover:scale-[1.02] transition-all text-center space-y-2 shadow-md group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-inner group-hover:scale-105 transition-transform">
+                  <span className="material-symbols-outlined text-3xl">co_present</span>
+                </div>
+                <div>
+                  <h3 className="font-headline text-lg font-black text-slate-800">교사 시작하기</h3>
+                  <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
+                    새로운 토론 주제를 개설하고,<br />
+                    학생 참여를 실시간 모니터링합니다.
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* 푸터 영역 */}
+            <footer className="w-full text-center text-slate-400 font-sans text-xs space-y-1.5 border-t border-slate-200/60 pt-4 mt-2">
+              <div className="flex justify-center gap-4 text-slate-500 font-bold">
+                <button
+                  onClick={() => openDocumentModal("terms", "이용약관")}
+                  className="hover:text-amber-600 transition-colors"
+                >
+                  이용약관
+                </button>
+                <span className="text-slate-300">|</span>
+                <button
+                  onClick={() => openDocumentModal("privacy", "개인정보처리방침")}
+                  className="hover:text-amber-600 transition-colors"
+                >
+                  개인정보처리방침
+                </button>
               </div>
-              <div>
-                <h3 className="font-headline text-lg font-black text-slate-800">교사 시작하기</h3>
-                <p className="font-sans text-[11px] text-slate-500 mt-1 leading-normal">
-                  새로운 토론 주제를 개설하고,<br />
-                  학생 참여를 실시간 모니터링합니다.
-                </p>
-              </div>
-            </button>
+              <p className="leading-relaxed text-slate-400/80">
+                책임자: 서울원광초등학교 교사 나혜진
+              </p>
+              <p className="text-slate-400/60">
+                © 2026 모두모아 (MOA). All Rights Reserved. 본 웹앱은 초등학교 교실 실시간 협력 토의용 교육용 무료 플랫폼입니다.
+              </p>
+            </footer>
           </div>
-
-          {/* 푸터 영역 */}
-          <footer className="w-full text-center text-slate-400 font-sans text-[10px] space-y-1.5 border-t border-slate-200/60 pt-4 mt-2">
-            <div className="flex justify-center gap-4 text-slate-500 font-bold">
-              <button
-                onClick={() => openDocumentModal("terms", "이용약관")}
-                className="hover:text-amber-600 transition-colors"
-              >
-                이용약관
-              </button>
-              <span className="text-slate-300">|</span>
-              <button
-                onClick={() => openDocumentModal("privacy", "개인정보처리방침")}
-                className="hover:text-amber-600 transition-colors"
-              >
-                개인정보처리방침
-              </button>
-            </div>
-            <p className="leading-relaxed text-slate-400/80">
-              책임자: 서울원광초등학교 교사 나혜진
-            </p>
-            <p className="text-slate-400/60">
-              © 2026 모두모아 (MOA). All Rights Reserved. 본 웹앱은 초등학교 교실 실시간 협력 토의용 교육용 무료 플랫폼입니다.
-            </p>
-          </footer>
         </div>
-      </div>
+        {renderDocumentModal()}
+      </>
     );
   }
 
