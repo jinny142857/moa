@@ -474,29 +474,28 @@ export default function TeacherDashboard({
                     </div>
 
                     {/* Mini Board Preview */}
-                    <div className="h-28 bg-slate-100 rounded-xl relative overflow-hidden flex items-center justify-center p-2">
-                      <div
-                        className="absolute inset-0 opacity-15 pointer-events-none"
-                        style={{
-                          backgroundImage: "radial-gradient(#0062a0 1px, transparent 1px)",
-                          backgroundSize: "8px 8px",
-                        }}
-                      ></div>
-                      {filteredPostIts.length === 0 ? (
-                        <div className="text-xs text-slate-400 font-bold font-sans">의견 작성 대기중</div>
-                      ) : (
-                        <div className="flex flex-wrap gap-2 justify-center max-w-[160px]">
-                          {filteredPostIts.map((p) => (
+                    <div className="h-44 bg-slate-50 border border-slate-200/80 rounded-xl relative overflow-hidden flex flex-col p-2.5 shadow-inner">
+                      <div className="absolute top-1.5 right-2 text-[9px] text-slate-400 font-bold z-10 bg-slate-50/80 px-1.5 rounded">
+                        실시간 모둠 칠판 내용
+                      </div>
+                      <div className="flex-1 overflow-y-auto space-y-1.5 mt-4 pr-1 text-left">
+                        {filteredPostIts.length === 0 ? (
+                          <div className="h-full flex items-center justify-center text-xs text-slate-400 font-bold font-sans">의견 작성 대기중</div>
+                        ) : (
+                          filteredPostIts.map((p) => (
                             <div
                               key={p.id}
-                              className="w-6 h-6 rounded shadow-sm border border-black/5"
+                              className="p-2.5 rounded-lg shadow-sm border border-black/5 text-[11px] leading-relaxed text-slate-800 font-bold font-sans"
                               style={{ backgroundColor: p.color }}
-                            ></div>
-                          ))}
-                        </div>
-                      )}
-                      <div className="absolute bottom-1 right-2 text-[9px] text-slate-400 font-bold">
-                        보드 미리보기
+                            >
+                              <div className="flex justify-between items-center text-[9px] text-slate-500 font-extrabold mb-1 border-b border-black/5 pb-0.5">
+                                <span>{p.studentName}</span>
+                                <span>❤️ {p.likes}</span>
+                              </div>
+                              <p className="whitespace-pre-wrap break-all">{p.text}</p>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
 

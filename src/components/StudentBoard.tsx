@@ -466,23 +466,11 @@ export default function StudentBoard({
                 <div className="relative">
                   <textarea
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-sans text-md focus:bg-white focus:border-orange-400 outline-none transition-all h-28 resize-none"
-                    placeholder="먼저 아래 [말로 입력하기] 마이크 단추를 눌러 생각을 이야기해 주세요. 그 다음 여기에 키보드로 수정할 수 있습니다."
+                    placeholder="마이크 단추를 눌러서 말하거나, 직접 키보드로 의견을 입력해 보세요!"
                     value={postItText}
                     onChange={(e) => setPostItText(e.target.value)}
-                    disabled={sttLoading || !postItText}
+                    disabled={sttLoading}
                   />
-
-                  {!postItText && (
-                    <div className="absolute inset-0 bg-slate-50/95 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-4 text-center space-y-2 pointer-events-none">
-                      <span className="material-symbols-outlined text-orange-500 text-3xl animate-pulse">mic_none</span>
-                      <p className="font-headline font-extrabold text-sm text-slate-800">
-                        🎙️ 음성 인식으로 의견 작성을 시작해 보세요!
-                      </p>
-                      <p className="font-sans text-[11px] text-slate-400">
-                        (말하기가 완료되면 자판으로 마음껏 고쳐 쓸 수 있어요)
-                      </p>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
@@ -512,6 +500,40 @@ export default function StudentBoard({
                     <span className="material-symbols-outlined text-sm">sticky_note_2</span>
                     의견 제출하기
                   </button>
+                </div>
+              </div>
+
+              {/* 실시간으로 모둠원들이 낸 의견 칠판 노출 */}
+              <div className="bg-slate-100/60 p-6 rounded-3xl border border-slate-200/50 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-headline text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-orange-500 text-sm">space_dashboard</span>
+                    📢 우리 모둠 칠판 (실시간 의견 공유)
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-bold">제출된 포스트잇이 여기에 실시간으로 나타납니다.</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (
+                    <div className="col-span-full py-8 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-2xl bg-white/50 text-xs">
+                      아직 등록된 의견 카드가 없습니다. 첫 의견을 등록해 보세요!
+                    </div>
+                  ) : (
+                    group.postits.filter(p => p.questionId === currentQuestionIndex).map((p, i) => (
+                      <div
+                        key={p.id}
+                        className="p-4 rounded-2xl shadow-sm border border-slate-200/40 flex flex-col justify-between h-28 transition-all hover:scale-[1.01]"
+                        style={{ backgroundColor: p.color }}
+                      >
+                        <p className="text-slate-800 text-xs font-semibold font-sans leading-normal overflow-y-auto pr-1">
+                          {p.text}
+                        </p>
+                        <div className="flex justify-between items-center mt-2 border-t border-black/5 pt-1.5 text-[9px] text-slate-500 font-bold">
+                          <span>작성자: {p.studentName}</span>
+                          <span className="flex items-center gap-0.5">❤️ {p.likes}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
