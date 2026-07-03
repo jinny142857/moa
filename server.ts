@@ -269,6 +269,17 @@ app.get("/api/debug-supabase", (req, res) => {
   const rawGoogleId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || "";
   const rawGoogleSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET || "";
   
+  // 서버에 실제로 로드된 환경변수 Key 이름들만 필터링하여 노출 (보안을 위해 값은 제외)
+  const allEnvKeys = Object.keys(process.env);
+  const relevantKeys = allEnvKeys.filter(k => 
+    k.toUpperCase().includes("SUPABASE") || 
+    k.toUpperCase().includes("GOOGLE") || 
+    k.toUpperCase().includes("GEMINI") ||
+    k.toUpperCase().includes("CLIENT") ||
+    k.toUpperCase().includes("SECRET") ||
+    k.toUpperCase().includes("KEY")
+  );
+
   res.json({
     urlConfigured: !!rawUrl,
     keyConfigured: !!rawKey,
@@ -282,6 +293,7 @@ app.get("/api/debug-supabase", (req, res) => {
     googleIdStart: rawGoogleId.substring(0, 10),
     googleSecretConfigured: !!rawGoogleSecret,
     googleSecretLength: rawGoogleSecret.length,
+    allKeysFoundOnServer: relevantKeys
   });
 });
 
