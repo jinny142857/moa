@@ -1391,6 +1391,22 @@ app.post("/api/rooms/:roomId/stt-correct", async (req, res) => {
 // ================= VITE DEV / PRODUCTION FLOW =================
 
 async function startServer() {
+  app.get("/이용약관.md", (req, res) => {
+    const filePath = path.join(process.cwd(), "이용약관.md");
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) return res.status(404).send("이용약관 파일을 찾을 수 없습니다.");
+      res.type("text/plain; charset=utf-8").send(data);
+    });
+  });
+
+  app.get("/개인정보처리방침.md", (req, res) => {
+    const filePath = path.join(process.cwd(), "개인정보처리방침.md");
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) return res.status(404).send("개인정보처리방침 파일을 찾을 수 없습니다.");
+      res.type("text/plain; charset=utf-8").send(data);
+    });
+  });
+
   if (process.env.VERCEL !== "1") {
     if (process.env.NODE_ENV !== "production") {
       // Integrate Vite in development mode
