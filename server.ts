@@ -1391,7 +1391,7 @@ app.post("/api/rooms/:roomId/stt-correct", async (req, res) => {
 // ================= VITE DEV / PRODUCTION FLOW =================
 
 async function startServer() {
-  app.get("/api/이용약관.md", (req, res) => {
+  app.get("/api/terms", (req, res) => {
     const filePath = path.join(process.cwd(), "이용약관.md");
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) return res.status(404).send("이용약관 파일을 찾을 수 없습니다.");
@@ -1399,7 +1399,7 @@ async function startServer() {
     });
   });
 
-  app.get("/api/개인정보처리방침.md", (req, res) => {
+  app.get("/api/privacy", (req, res) => {
     const filePath = path.join(process.cwd(), "개인정보처리방침.md");
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) return res.status(404).send("개인정보처리방침 파일을 찾을 수 없습니다.");
