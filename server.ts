@@ -37,7 +37,8 @@ function cleanEnvVar(val: string | undefined): string {
 
 // Initialize Supabase Client
 const supabaseUrl = cleanEnvVar(process.env.SUPABASE_URL);
-const supabaseAnonKey = cleanEnvVar(process.env.SUPABASE_ANON_KEY);
+// 'SUPABSE_ANON_KEY' 오탈자 대응용 폴백 추가
+const supabaseAnonKey = cleanEnvVar(process.env.SUPABASE_ANON_KEY || process.env.SUPABSE_ANON_KEY);
 
 let supabase: any = null;
 
@@ -58,9 +59,10 @@ if (supabase) {
 // Initialize Gemini SDK lazily
 let ai: any = null;
 function getGeminiClient() {
-  if (!ai && process.env.GEMINI_API_KEY) {
+  const rawApiKey = process.env.GEMINI_API_KEY || process.env.gemini_api;
+  if (!ai && rawApiKey) {
     try {
-      const apiKey = cleanEnvVar(process.env.GEMINI_API_KEY);
+      const apiKey = cleanEnvVar(rawApiKey);
       ai = new GoogleGenAI({
         apiKey: apiKey,
         httpOptions: {
@@ -489,7 +491,12 @@ app.post("/api/rooms/:roomId/group/:groupId/artifact", (req, res) => {
 
 // Teacher Google Login API - OAuth URL generator
 app.get("/api/auth/google/url", (req, res) => {
-  const clientId = cleanEnvVar(process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID);
+  // google_client_id 소문자 폴백 추가
+  const clientId = cleanEnvVar(
+    process.env.GOOGLE_CLIENT_ID || 
+    process.env.CLIENT_ID || 
+    process.env.google_client_id
+  );
   
   // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
   const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
@@ -523,8 +530,18 @@ app.get(["/auth/callback", "/auth/callback/", "/api/auth/callback", "/api/auth/c
   let user = { name: "지연 선생님", email: "jinny142857@gmail.com", picture: "" };
   
   try {
-    const clientId = cleanEnvVar(process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID);
-    const clientSecret = cleanEnvVar(process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET);
+    // google_client_id, google_client_seceret 소문자 및 오탈자 폴백 추가
+    const clientId = cleanEnvVar(
+      process.env.GOOGLE_CLIENT_ID || 
+      process.env.CLIENT_ID || 
+      process.env.google_client_id
+    );
+    const clientSecret = cleanEnvVar(
+      process.env.GOOGLE_CLIENT_SECRET || 
+      process.env.CLIENT_SECRET || 
+      process.env.google_client_seceret || 
+      process.env.google_client_secret
+    );
     
     // Vercel/Production에서는 HTTPS 사용, 로컬에서는 HTTP
     const protocol = process.env.VERCEL_ENV === "production" || req.secure || req.get("x-forwarded-proto") === "https" ? "https" : "http";
