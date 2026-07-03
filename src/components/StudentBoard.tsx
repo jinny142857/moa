@@ -258,21 +258,15 @@ export default function StudentBoard({
   const groupStudents = room.students.filter((s) => s.groupId === group.id);
   const activeGroupStudents = groupStudents.filter((s) => s.active);
 
-  // Reusable Facilitator Speech Bubble helper
+  // Reusable Facilitator Speech Bubble helper (compacted to prevent vertical scrolling)
   const renderSpeechBubble = (text: string) => {
     return (
-      <div className="flex gap-6 items-start">
-        <div className="shrink-0 w-24 h-24 bg-white rounded-3xl shadow-lg flex flex-col items-center justify-center border-4 border-white overflow-hidden relative">
-          <div className="w-full h-2/3 bg-orange-100 flex items-center justify-center overflow-hidden">
-            <MascotIcon character={room.character} size="sm" className="scale-110 border-none shadow-none bg-transparent" />
-          </div>
-          <div className="w-full h-1/3 bg-orange-500 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white uppercase tracking-tight">사회자 {room.characterName}</span>
-          </div>
+      <div className="flex gap-3 items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-100 shrink-0">
+        <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center overflow-hidden">
+          <MascotIcon character={room.character} size="sm" className="scale-110" />
         </div>
-        <div className="flex-1 bg-white p-6 rounded-3xl shadow-md border border-slate-100 relative">
-          <div className="absolute -left-3 top-8 w-6 h-6 bg-white rotate-45 border-l border-b border-slate-100"></div>
-          <p className="font-sans text-slate-700 text-md leading-relaxed font-medium">
+        <div className="flex-1 min-w-0">
+          <p className="font-sans text-slate-700 text-xs md:text-sm leading-normal font-medium">
             {text}
           </p>
         </div>
@@ -415,7 +409,7 @@ export default function StudentBoard({
         </aside>
 
         {/* Central Content Area */}
-        <section className="flex-1 flex flex-col p-8 gap-8 overflow-y-auto">
+        <section className="flex-1 flex flex-col p-4 md:p-5 gap-3 md:gap-4 overflow-hidden">
           {/* STEP 0: LOBBY / 대기 중 */}
           {room.currentStepIndex === 0 && (
             <div className="flex-1 flex flex-col justify-center items-center text-center max-w-xl mx-auto space-y-6">
@@ -439,74 +433,74 @@ export default function StudentBoard({
 
           {/* STEP 1: 토의 진행 (생각 카드 작성 & 발표자 추첨) */}
           {isQuestionStep && stageIndex === 0 && (
-            <div className="space-y-6 flex-1 flex flex-col">
+            <div className="space-y-3 flex-1 flex flex-col overflow-hidden">
               {renderSpeechBubble(`"아래 질문을 잘 읽고 생각을 적어 카드(포스트잇)를 붙인 다음, 모둠 친구들과 함께 돌아가며 이야기를 나눠보자! 🎤"`)}
 
               {/* 토의 주제 표시 */}
-              <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-br-2xl">토의 주제</div>
-                <h3 className="text-2xl font-black text-slate-800 leading-tight mt-2">
+              <div className="bg-orange-50/50 py-2.5 px-4 rounded-2xl border border-orange-100 text-center relative overflow-hidden shrink-0">
+                <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[9px] font-bold px-2 py-0.5 rounded-br-xl">토의 질문</div>
+                <h3 className="text-lg font-bold text-slate-800 leading-tight mt-1">
                   "{room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}"
                 </h3>
               </div>
 
               {/* 좌우 2단 구성 (발표자 추첨(좌) & 생각 카드 작성(우)) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch shrink-0">
                 
                 {/* 왼쪽: 발표자 추첨 (크기 축소) */}
                 <div className="lg:col-span-5 flex flex-col">
                   {(room.questionsUseRandom === undefined || room.questionsUseRandom[currentQuestionIndex] !== false) ? (
-                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[280px] h-full">
+                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[170px] h-full">
                       <div>
-                        <span className="text-sm font-bold text-slate-500 block mb-3">발표 순서 정하기</span>
+                        <span className="text-xs font-bold text-slate-500 block mb-2">발표 순서 정하기</span>
                         {isSpinning ? (
-                          <div className="w-full bg-slate-900 border-4 border-amber-400 rounded-2xl p-4 shadow-md relative overflow-hidden text-center space-y-3">
+                          <div className="w-full bg-slate-900 border-4 border-amber-400 rounded-xl p-3 shadow-md relative overflow-hidden text-center space-y-2">
                             <div className="flex justify-between px-2">
-                              <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
-                              <span className="text-[10px] font-bold text-amber-400 tracking-widest">발표자 추첨 슬롯머신</span>
-                              <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+                              <span className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></span>
+                              <span className="text-[9px] font-bold text-amber-400 tracking-widest">발표자 추첨 슬롯머신</span>
+                              <span className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></span>
                             </div>
-                            <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-2 border-amber-500 rounded-xl h-20 flex items-center justify-center relative shadow-inner overflow-hidden">
+                            <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-2 border-amber-500 rounded-lg h-14 flex items-center justify-center relative shadow-inner overflow-hidden">
                               <div className="absolute inset-x-0 h-0.5 bg-red-600/60 top-1/2 -translate-y-1/2 z-10"></div>
-                              <div className="font-headline text-2xl font-black text-amber-300 tracking-wider animate-bounce">
+                              <div className="font-headline text-lg font-black text-amber-300 tracking-wider animate-bounce">
                                 🎰 {displayedSpinnerName || "추첨 중..."}
                               </div>
                             </div>
                           </div>
                         ) : group.currentSpeaker === student.name ? (
-                          <div className="w-full bg-amber-50 border-2 border-orange-400 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
-                            <span className="material-symbols-outlined text-orange-500 text-5xl animate-bounce">mic</span>
-                            <h3 className="text-lg font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
-                            <p className="text-xs text-slate-600 leading-normal">
-                              모둠 친구들에게 내가 작성했던 의견 카드를 소리내어 설명해 주세요.
+                          <div className="w-full bg-amber-50 border-2 border-orange-400 p-4 rounded-xl text-center space-y-2 shadow-sm animate-scale-in">
+                            <span className="material-symbols-outlined text-orange-500 text-3xl animate-bounce">mic</span>
+                            <h3 className="text-sm font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
+                            <p className="text-[11px] text-slate-600 leading-normal">
+                              모둠 친구들에게 내가 작성했던 의견 카드를 설명해 주세요.
                             </p>
                             <button
                               type="button"
                               onClick={onPassSpeaker}
                               disabled={group.passTickets <= 0}
-                              className="px-5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[11px] rounded-full shadow-sm disabled:opacity-40 transition-all mx-auto block"
+                              className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[10px] rounded-full shadow-sm disabled:opacity-40 transition-all mx-auto block"
                             >
                               다음 친구에게 양보하기 ({group.passTickets}장 있음)
                             </button>
                           </div>
                         ) : group.currentSpeaker ? (
-                          <div className="w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
-                            <span className="material-symbols-outlined text-orange-500 text-4xl animate-pulse">campaign</span>
-                            <h3 className="text-lg font-bold text-slate-700">
+                          <div className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-center space-y-2 shadow-sm animate-scale-in">
+                            <span className="material-symbols-outlined text-orange-500 text-2xl animate-pulse">campaign</span>
+                            <h3 className="text-sm font-bold text-slate-700">
                               현재 발표자: <span className="text-orange-500 font-extrabold">{group.currentSpeaker}</span>
                             </h3>
-                            <p className="text-[11px] text-slate-400">
-                              친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
+                            <p className="text-[10px] text-slate-400">
+                              친구가 열심히 설명하는 동안 귀 기울여 들어볼까요? 👂
                             </p>
                             {group.drawnSpeakers.length === activeGroupStudents.length ? (
-                              <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 inline-block">
+                              <div className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200 inline-block">
                                 🎉 모든 모둠원이 발표를 완료했습니다!
                               </div>
                             ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
                               <button
                                 type="button"
                                 onClick={onDrawSpeaker}
-                                className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold rounded-full shadow-md animate-pulse mx-auto block"
+                                className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold rounded-full shadow-sm animate-pulse mx-auto block"
                               >
                                 마지막 발표자 확인하기 🎤
                               </button>
@@ -514,23 +508,23 @@ export default function StudentBoard({
                               <button
                                 type="button"
                                 onClick={onDrawSpeaker}
-                                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-600 rounded-full shadow-sm mx-auto block"
+                                className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] font-bold text-slate-600 rounded-full shadow-sm mx-auto block"
                               >
                                 다음 발표자 또 뽑기 🎲
                               </button>
                             )}
                           </div>
                         ) : (
-                          <div className="w-full bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-5 shadow-sm text-center space-y-3">
-                            <div className="bg-white border border-amber-300 rounded-xl h-20 flex items-center justify-center shadow-inner">
-                              <p className="font-headline text-md font-black text-amber-800">
+                          <div className="w-full bg-amber-500/10 border-2 border-amber-400/80 rounded-xl p-4 shadow-sm text-center space-y-2">
+                            <div className="bg-white border border-amber-300 rounded-lg h-14 flex items-center justify-center shadow-inner">
+                              <p className="font-headline text-sm font-black text-amber-800">
                                 누가 발표해 볼까요?
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={onDrawSpeaker}
-                              className="w-full h-10 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-xs font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1 border-b border-orange-700 mx-auto block"
+                              className="w-full h-9 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-xs font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1 border-b border-orange-700 mx-auto block"
                             >
                               {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
                             </button>
@@ -540,13 +534,13 @@ export default function StudentBoard({
 
                       {/* 발표 이력 */}
                       {group.drawnSpeakers.length > 0 && (
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-3 text-left">
-                          <span className="text-[10px] font-bold text-slate-400 block mb-1">발표 완료 친구 목록</span>
-                          <div className="flex flex-wrap gap-1.5 items-center text-[10px]">
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 mt-2 text-left">
+                          <span className="text-[9px] font-bold text-slate-400 block mb-1">발표 완료 친구 목록</span>
+                          <div className="flex flex-wrap gap-1 items-center text-[9px]">
                             {group.drawnSpeakers.map((name, i) => (
                               <React.Fragment key={`${name}-${i}`}>
                                 {i > 0 && <span className="text-slate-300">➡️</span>}
-                                <span className="px-2 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-600 shadow-sm">{name}</span>
+                                <span className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-600 shadow-xs">{name}</span>
                               </React.Fragment>
                             ))}
                           </div>
@@ -554,25 +548,24 @@ export default function StudentBoard({
                       )}
                     </div>
                   ) : (
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-3xl flex flex-col justify-center items-center text-center h-full min-h-[280px] space-y-3">
-                      <span className="material-symbols-outlined text-slate-400 text-5xl animate-pulse">forum</span>
-                      <h4 className="font-headline text-md font-bold text-slate-700">자유로운 생각 공유 시간</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed max-w-[280px]">
-                        이 질문에는 발표 추첨기 기능이 꺼져 있습니다.<br />
-                        생각 카드를 등록하고, 모둠원들과 자유롭고 열린 대화를 나누며 생각을 나누어 보세요! 💬
+                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-4 rounded-2xl flex flex-col justify-center items-center text-center h-full min-h-[170px] space-y-2">
+                      <span className="material-symbols-outlined text-slate-400 text-3xl animate-pulse">forum</span>
+                      <h4 className="font-headline text-xs font-bold text-slate-700">자유로운 생각 공유 시간</h4>
+                      <p className="text-[10px] text-slate-500 leading-normal max-w-[200px]">
+                        이 질문에는 발표 추첨기 기능이 꺼져 있습니다. 생각을 등록하고 자유롭게 대화하세요! 💬
                       </p>
                     </div>
                   )}
                 </div>
 
                 {/* 오른쪽: 생각 카드 작성 (크기 확대) */}
-                <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div className="lg:col-span-7 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-bold text-slate-500">생각 카드 적기</span>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-bold text-slate-500">생각 카드 적기</span>
                       <div className="flex items-center gap-1.5">
-                        {isRecording && <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>}
-                        <span className="text-xs text-slate-400 font-bold">
+                        {isRecording && <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping"></span>}
+                        <span className="text-[10px] text-slate-400 font-bold">
                           {isRecording ? "말로 받아쓰는 중..." : sttLoading ? "수정 제안 분석 중..." : "직접 말하여 의견 작성을 시작해 보세요!"}
                         </span>
                       </div>
@@ -580,7 +573,7 @@ export default function StudentBoard({
 
                     <div className="relative">
                       <textarea
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-sans text-md focus:bg-white focus:border-orange-400 outline-none transition-all h-32 resize-none"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-sans text-sm focus:bg-white focus:border-orange-400 outline-none transition-all h-20 resize-none"
                         placeholder="마이크 단추를 눌러서 말하거나, 직접 키보드로 의견을 입력해 보세요!"
                         value={postItText}
                         onChange={(e) => setPostItText(e.target.value)}
@@ -589,17 +582,17 @@ export default function StudentBoard({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 mt-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400">배경 색상:</span>
-                      <div className="flex gap-1.5">
+                  <div className="flex items-center justify-between gap-4 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-slate-400">배경:</span>
+                      <div className="flex gap-1">
                         {stickyColors.map((col) => (
                           <button
                             key={col.hex}
                             type="button"
                             onClick={() => setPostItColor(col.hex)}
-                            className={`w-7 h-7 rounded-lg border transition-transform ${
-                              postItColor === col.hex ? "border-slate-800 scale-110 shadow-sm" : "border-slate-200"
+                            className={`w-6 h-6 rounded-md border transition-transform ${
+                              postItColor === col.hex ? "border-slate-800 scale-110 shadow-xs" : "border-slate-200"
                             }`}
                             style={{ backgroundColor: col.hex }}
                           />
@@ -611,40 +604,40 @@ export default function StudentBoard({
                       type="button"
                       onClick={() => handlePostItSubmit()}
                       disabled={!postItText.trim() || sttLoading}
-                      className="h-12 px-6 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full shadow-md flex items-center gap-1.5 transition-all text-sm"
+                      className="h-10 px-5 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full shadow-sm flex items-center gap-1 transition-all text-xs"
                     >
-                      <span className="material-symbols-outlined text-sm">sticky_note_2</span>
+                      <span className="material-symbols-outlined text-xs">sticky_note_2</span>
                       의견 제출
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* 실시간으로 모둠원들이 낸 의견 칠판 노출 */}
-              <div className="bg-slate-100/60 p-6 rounded-3xl border border-slate-200/50 space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-headline text-sm font-bold text-slate-700 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-orange-500 text-sm">space_dashboard</span>
+              {/* 실시간으로 모둠원들이 낸 의견 칠판 노출 (스크롤 가능하게 flex-1 설정) */}
+              <div className="bg-slate-100/60 p-4 rounded-2xl border border-slate-200/50 space-y-2 flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div className="flex justify-between items-center shrink-0">
+                  <h4 className="font-headline text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-orange-500 text-xs">space_dashboard</span>
                     📢 우리 모둠 칠판 (실시간 의견 공유)
                   </h4>
-                  <span className="text-[10px] text-slate-400 font-bold">제출된 포스트잇이 여기에 실시간으로 나타납니다.</span>
+                  <span className="text-[9px] text-slate-400 font-bold">제출된 포스트잇이 여기에 실시간으로 나타납니다.</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto flex-1 pr-1">
                   {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (
-                    <div className="col-span-full py-8 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-2xl bg-white/50 text-xs">
+                    <div className="col-span-full py-6 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-xl bg-white/50 text-[10px]">
                       아직 등록된 의견 카드가 없습니다. 첫 의견을 등록해 보세요!
                     </div>
                   ) : (
                     group.postits.filter(p => p.questionId === currentQuestionIndex).map((p, i) => (
                       <div
                         key={p.id}
-                        className="p-4 rounded-2xl shadow-sm border border-slate-200/40 flex flex-col justify-between h-28 transition-all hover:scale-[1.01]"
+                        className="p-3 rounded-xl shadow-sm border border-slate-200/40 flex flex-col justify-between h-20 transition-all hover:scale-[1.01]"
                         style={{ backgroundColor: p.color }}
                       >
-                        <p className="text-slate-800 text-xs font-semibold font-sans leading-normal overflow-y-auto pr-1">
+                        <p className="text-slate-800 text-[11px] font-semibold font-sans leading-snug overflow-y-auto pr-1">
                           {p.text}
                         </p>
-                        <div className="flex justify-between items-center mt-2 border-t border-black/5 pt-1.5 text-[9px] text-slate-500 font-bold">
+                        <div className="flex justify-between items-center mt-1 border-t border-black/5 pt-1 text-[8px] text-slate-500 font-bold shrink-0">
                           <span>작성자: {p.studentName}</span>
                           <span className="flex items-center gap-0.5">❤️ {p.likes}</span>
                         </div>
@@ -658,12 +651,12 @@ export default function StudentBoard({
 
           {/* STEP 2: 생각 모으기 (Bulletin Board with hearts) */}
           {isQuestionStep && stageIndex === 1 && (
-            <div className="space-y-6 flex-1 flex flex-col">
+            <div className="space-y-3 flex-1 flex flex-col overflow-hidden">
               {renderSpeechBubble(`"우리 모둠 친구들이 제출한 의견 카드를 하나씩 찬찬히 읽어보고, 정말 마음에 들거나 공감하는 좋은 의견들에 하트(❤️)를 아낌없이 눌러주자!"`)}
 
-              <div className="flex-1 grid grid-cols-2 gap-4">
+              <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pr-1 min-h-0">
                 {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (
-                  <div className="col-span-full py-16 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
+                  <div className="col-span-full py-12 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-xs">
                     아직 등록된 의견 카드가 없습니다.
                   </div>
                 ) : (
@@ -672,12 +665,12 @@ export default function StudentBoard({
                     return (
                       <div
                         key={p.id}
-                        className={`p-6 rounded-3xl shadow-sm border border-slate-200/50 flex flex-col justify-between h-40 transition-transform hover:scale-[1.01] ${rotClass}`}
+                        className={`p-4 rounded-2xl shadow-sm border border-slate-200/50 flex flex-col justify-between h-32 transition-transform hover:scale-[1.01] ${rotClass}`}
                         style={{ backgroundColor: p.color }}
                       >
                         <div>
                           <div className="flex justify-between items-start">
-                            <span className="px-2.5 py-0.5 bg-black/5 text-[10px] font-bold text-slate-700 rounded-full">
+                            <span className="px-2 py-0.5 bg-black/5 text-[9px] font-bold text-slate-700 rounded-full">
                               {p.studentName}
                             </span>
                             {p.studentName === student.name && (
@@ -685,25 +678,25 @@ export default function StudentBoard({
                                 onClick={() => onDeletePostIt(p.id)}
                                 className="text-slate-400 hover:text-rose-600 transition-colors"
                               >
-                                <span className="material-symbols-outlined text-sm">delete</span>
+                                <span className="material-symbols-outlined text-xs">delete</span>
                               </button>
                             )}
                           </div>
-                          <p className="text-sm font-bold text-slate-700 mt-2.5 leading-relaxed line-clamp-2">
+                          <p className="text-xs font-bold text-slate-700 mt-1.5 leading-relaxed line-clamp-2">
                             "{p.text}"
                           </p>
                         </div>
 
-                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-black/5">
-                          <span className="text-[10px] text-slate-500 font-bold">
+                        <div className="flex justify-between items-center mt-1 pt-1.5 border-t border-black/5 shrink-0">
+                          <span className="text-[9px] text-slate-500 font-bold">
                             {p.sttCorrected && "🎤 음성 입력됨"}
                           </span>
 
                           <button
                             onClick={() => onLikePostIt(p.id)}
-                            className="flex items-center gap-1.5 bg-white/80 hover:bg-white px-3 py-1 rounded-full text-xs font-bold text-rose-500 shadow-sm transition-transform active:scale-110"
+                            className="flex items-center gap-1 bg-white/80 hover:bg-white px-2.5 py-0.5 rounded-full text-[10px] font-bold text-rose-500 shadow-xs transition-transform active:scale-110"
                           >
-                            <span className="material-symbols-outlined text-sm">favorite</span>
+                            <span className="material-symbols-outlined text-xs">favorite</span>
                             <span>{p.likes}</span>
                           </button>
                         </div>

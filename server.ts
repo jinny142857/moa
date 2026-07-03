@@ -100,17 +100,21 @@ async function saveRooms() {
     // 파일에 저장
     fs.writeFileSync(ROOMS_FILE, JSON.stringify(rooms, null, 2));
     
-    // Supabase에도 저장 (비동기)
+    // Supabase에도 저장 (비동기, 메인 루프 블로킹 방지)
     if (supabase) {
       for (const [roomId, room] of Object.entries(rooms)) {
-        try {
-          await supabase
-            .from("rooms")
-            .upsert({ room_id: roomId, room_state: room })
-            .select();
-        } catch (err) {
-          console.error(`Failed to save room ${roomId} to Supabase:`, err);
-        }
+        supabase
+          .from("rooms")
+          .upsert({ room_id: roomId, room_state: room })
+          .select()
+          .then(({ error }: any) => {
+            if (error) {
+              console.error(`Failed to save room ${roomId} to Supabase (returned error):`, error);
+            }
+          })
+          .catch((err: any) => {
+            console.error(`Failed to save room ${roomId} to Supabase (exception):`, err);
+          });
       }
     }
   } catch (e) {
@@ -906,10 +910,11 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
   
   await saveRooms();
   
-  // Supabase에 포스트잇 저장
+  // Supabase에 포스트잇 저장 (비동기 처리로 지연/블로킹 방지)
   if (supabase) {
-    try {
-      await supabase.from("postits").insert({
+    supabase
+      .from("postits")
+      .insert({
         id: newPostIt.id,
         room_id: room.roomId,
         group_id: groupId,
@@ -918,10 +923,15 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
         color: color || "#ffd93d",
         stt_corrected: false,
         question_id: questionId,
+      })
+      .then(({ error }: any) => {
+        if (error) {
+          console.error("Failed to save postit to Supabase (returned error):", error);
+        }
+      })
+      .catch((err: any) => {
+        console.error("Failed to save postit to Supabase (exception):", err);
       });
-    } catch (err) {
-      console.error("Failed to save postit to Supabase:", err);
-    }
   }
   
   broadcastRoomUpdate(room.roomId);
@@ -942,16 +952,20 @@ app.post("/api/rooms/:roomId/postit/like", async (req, res) => {
         postit.likes += 1;
         await saveRooms();
         
-        // Supabase에 라이크 업데이트
+        // Supabase에 라이크 업데이트 (비동기 처리)
         if (supabase) {
-          try {
-            await supabase
-              .from("postits")
-              .update({ likes: postit.likes })
-              .eq("id", postitId);
-          } catch (err) {
-            console.error("Failed to update likes in Supabase:", err);
-          }
+          supabase
+            .from("postits")
+            .update({ likes: postit.likes })
+            .eq("id", postitId)
+            .then(({ error }: any) => {
+              if (error) {
+                console.error("Failed to update likes in Supabase (returned error):", error);
+              }
+            })
+            .catch((err: any) => {
+              console.error("Failed to update likes in Supabase (exception):", err);
+            });
         }
         
         broadcastRoomUpdate(room.roomId);
@@ -975,13 +989,20 @@ app.post("/api/rooms/:roomId/postit/delete", async (req, res) => {
       group.postits = group.postits.filter((p) => p.id !== postitId);
       await saveRooms();
       
-      // Supabase에서 삭제
+      // Supabase에서 삭제 (비동기 처리)
       if (supabase) {
-        try {
-          await supabase.from("postits").delete().eq("id", postitId);
-        } catch (err) {
-          console.error("Failed to delete postit from Supabase:", err);
-        }
+        supabase
+          .from("postits")
+          .delete()
+          .eq("id", postitId)
+          .then(({ error }: any) => {
+            if (error) {
+              console.error("Failed to delete postit from Supabase (returned error):", error);
+            }
+          })
+          .catch((err: any) => {
+            console.error("Failed to delete postit from Supabase (exception):", err);
+          });
       }
       
       broadcastRoomUpdate(room.roomId);
