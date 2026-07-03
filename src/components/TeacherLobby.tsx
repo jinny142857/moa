@@ -12,7 +12,8 @@ interface TeacherLobbyProps {
     hasArtifact?: boolean,
     groupCount?: number,
     questions?: string[],
-    hasVote?: boolean
+    hasVote?: boolean,
+    questionsUseRandom?: boolean[]
   ) => void;
   onStartLesson: () => void;
   teacherUser?: { name: string; email: string; picture?: string } | null;
@@ -29,6 +30,7 @@ interface SavedPreset {
   studentInput: string;
   questions?: string[];
   hasVote?: boolean;
+  questionsUseRandom?: boolean[];
 }
 
 export default function TeacherLobby({ 
@@ -51,6 +53,7 @@ export default function TeacherLobby({
     "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
     "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
   ]);
+  const [questionsUseRandom, setQuestionsUseRandom] = useState<boolean[]>([true, true]);
   const [hasVote, setHasVote] = useState(true);
   const [hasArtifact, setHasArtifact] = useState(false);
   const [groupCount, setGroupCount] = useState<number>(6);
@@ -76,16 +79,30 @@ export default function TeacherLobby({
           if (res.ok) {
             const data = await res.json();
             // Map table snake_case keys back to camelCase
-            const mapped = data.map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              topic: p.topic,
-              questions: p.questions,
-              hasVote: p.has_vote !== undefined ? p.has_vote : true,
-              hasArtifact: p.has_artifact !== undefined ? p.has_artifact : false,
-              groupCount: p.group_count || 6,
-              studentInput: p.student_input || "",
-            }));
+            const mapped = data.map((p: any) => {
+              let questionsList: string[] = [];
+              let useRandomList: boolean[] = [];
+              if (p.questions) {
+                if (Array.isArray(p.questions)) {
+                  questionsList = p.questions;
+                  useRandomList = p.questions.map(() => true);
+                } else if (typeof p.questions === "object") {
+                  questionsList = p.questions.list || [];
+                  useRandomList = p.questions.useRandom || questionsList.map(() => true);
+                }
+              }
+              return {
+                id: p.id,
+                name: p.name,
+                topic: p.topic,
+                questions: questionsList,
+                questionsUseRandom: useRandomList,
+                hasVote: p.has_vote !== undefined ? p.has_vote : true,
+                hasArtifact: p.has_artifact !== undefined ? p.has_artifact : false,
+                groupCount: p.group_count || 6,
+                studentInput: p.student_input || "",
+              };
+            });
             if (mapped.length > 0) {
               setPresets(mapped);
               return;
@@ -116,6 +133,7 @@ export default function TeacherLobby({
             "우리가 일상에서 무심히 버리는 쓰레기에는 어떤 것들이 있을까요?",
             "그 쓰레기들을 줄이기 위해 학교에서 당장 실천할 수 있는 방법은 무엇일까요?"
           ],
+          questionsUseRandom: [true, true],
           hasVote: true
         };
         setPresets([defaultPreset]);
@@ -141,6 +159,7 @@ export default function TeacherLobby({
       studentInput,
       questions,
       hasVote,
+      questionsUseRandom,
     };
 
     if (teacherUser?.email) {
@@ -152,7 +171,7 @@ export default function TeacherLobby({
             email: teacherUser.email,
             name: newPreset.name,
             topic: newPreset.topic,
-            questions: newPreset.questions,
+            questions: { list: newPreset.questions, useRandom: newPreset.questionsUseRandom },
             hasVote: newPreset.hasVote,
             hasArtifact: newPreset.hasArtifact,
             groupCount: newPreset.groupCount,
@@ -163,15 +182,28 @@ export default function TeacherLobby({
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
+            const p = data.preset;
+            let questionsList: string[] = [];
+            let useRandomList: boolean[] = [];
+            if (p.questions) {
+              if (Array.isArray(p.questions)) {
+                questionsList = p.questions;
+                useRandomList = p.questions.map(() => true);
+              } else if (typeof p.questions === "object") {
+                questionsList = p.questions.list || [];
+                useRandomList = p.questions.useRandom || questionsList.map(() => true);
+              }
+            }
             const savedDbPreset: SavedPreset = {
-              id: data.preset.id,
-              name: data.preset.name,
-              topic: data.preset.topic,
-              questions: data.preset.questions,
-              hasVote: data.preset.has_vote,
-              hasArtifact: data.preset.has_artifact,
-              groupCount: data.preset.group_count,
-              studentInput: data.preset.student_input
+              id: p.id,
+              name: p.name,
+              topic: p.topic,
+              questions: questionsList,
+              questionsUseRandom: useRandomList,
+              hasVote: p.has_vote,
+              hasArtifact: p.has_artifact,
+              groupCount: p.group_count,
+              studentInput: p.student_input
             };
             setPresets([savedDbPreset, ...presets]);
             setPresetNameInput("");
@@ -205,8 +237,10 @@ export default function TeacherLobby({
     setTopic(preset.topic);
     if (preset.questions) {
       setQuestions(preset.questions);
+      setQuestionsUseRandom(preset.questionsUseRandom || preset.questions.map(() => true));
     } else {
       setQuestions([preset.topic]);
+      setQuestionsUseRandom([true]);
     }
     if (preset.hasVote !== undefined) {
       setHasVote(preset.hasVote);
@@ -264,7 +298,8 @@ export default function TeacherLobby({
       isAdminMode ? hasArtifact : false, 
       isAdminMode ? groupCount : 6,
       filteredQuestions,
-      hasVote
+      hasVote,
+      questionsUseRandom
     );
     setLoading(false);
   };
@@ -408,7 +443,10 @@ export default function TeacherLobby({
                 </label>
                 <button
                   type="button"
-                  onClick={() => setQuestions([...questions, ""])}
+                  onClick={() => {
+                    setQuestions([...questions, ""]);
+                    setQuestionsUseRandom([...questionsUseRandom, true]);
+                  }}
                   className="bg-primary-brand text-white font-headline text-xs font-bold px-3 py-1.5 rounded-lg border-b-2 border-amber-800 hover:bg-amber-600 active:translate-y-0.5 transition-all flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-sm">add</span>
@@ -433,12 +471,29 @@ export default function TeacherLobby({
                       placeholder={`발문 ${idx + 1}을 입력해주세요.`}
                       className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-amber-400 transition-colors"
                     />
+                    
+                    <label className="flex items-center gap-1.5 shrink-0 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 select-none">
+                      <input
+                        type="checkbox"
+                        checked={questionsUseRandom[idx] !== false}
+                        onChange={(e) => {
+                          const updated = [...questionsUseRandom];
+                          updated[idx] = e.target.checked;
+                          setQuestionsUseRandom(updated);
+                        }}
+                        className="rounded border-slate-300 text-amber-500 focus:ring-amber-500 h-3.5 w-3.5"
+                      />
+                      <span className="text-[11px] font-bold text-slate-600">랜덤 추첨 발표</span>
+                    </label>
+
                     {questions.length > 1 && (
                       <button
                         type="button"
                         onClick={() => {
                           const updated = questions.filter((_, i) => i !== idx);
+                          const updatedUseRandom = questionsUseRandom.filter((_, i) => i !== idx);
                           setQuestions(updated);
+                          setQuestionsUseRandom(updatedUseRandom);
                         }}
                         className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
                         title="삭제"

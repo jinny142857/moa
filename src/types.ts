@@ -66,4 +66,5 @@ export interface RoomState {
   groupCount?: number; // Teacher customized number of groups (2 to 6)
   questions?: string[]; // List of custom discussion questions
   hasVote?: boolean; // Toggle voting stage option
+  questionsUseRandom?: boolean[]; // Toggle random pick option per question
 }

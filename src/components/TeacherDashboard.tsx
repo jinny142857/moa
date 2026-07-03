@@ -40,7 +40,7 @@ export default function TeacherDashboard({
 
   // Dynamic calculations based on questions count and hasVote option
   const questionsCount = room.questions?.length || 1;
-  const maxStepIndex = questionsCount * 3 + (room.hasVote ? 1 : 0) + 1;
+  const maxStepIndex = questionsCount * 2 + (room.hasVote ? 1 : 0) + 1;
 
   // Sum of postits across all groups
   const totalPostIts = room.groups.reduce((acc, g) => acc + g.postits.length, 0);
@@ -51,13 +51,13 @@ export default function TeacherDashboard({
 
   const getStepDescription = (stepIndex: number) => {
     if (stepIndex === 0) return "로비 대기";
-    if (stepIndex >= 1 && stepIndex <= questionsCount * 3) {
-      const qIdx = Math.floor((stepIndex - 1) / 3);
-      const stageIdx = (stepIndex - 1) % 3;
-      const stageName = ["생각 시간", "발표 추첨", "의견 모으기"][stageIdx];
+    if (stepIndex >= 1 && stepIndex <= questionsCount * 2) {
+      const qIdx = Math.floor((stepIndex - 1) / 2);
+      const stageIdx = (stepIndex - 1) % 2;
+      const stageName = ["토의 진행", "생각 모으기"][stageIdx];
       return `Q${qIdx + 1}: ${stageName}`;
     }
-    if (room.hasVote && stepIndex === questionsCount * 3 + 1) {
+    if (room.hasVote && stepIndex === questionsCount * 2 + 1) {
       return "미니 투표";
     }
     return "토의 종료";
@@ -379,18 +379,17 @@ export default function TeacherDashboard({
             </section>
 
             {/* Active Character Prompt Bubbles for Teacher */}
-            {room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3 && (
+            {room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 2 && (
               <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3.5 text-slate-700 opinion-card animate-scale-in">
                 <MascotIcon character={room.character} size="sm" className="shrink-0" />
                 <div className="space-y-1 text-left">
                   <span className="block text-xs font-bold text-amber-800">💬 현재 {room.characterName} 사회자가 학생에게 띄우는 발문</span>
                   <p className="font-sans text-sm font-bold text-slate-800 leading-relaxed">
                     {(() => {
-                      const qIdx = Math.floor((room.currentStepIndex - 1) / 3);
+                      const qIdx = Math.floor((room.currentStepIndex - 1) / 2);
                       const currentQ = room.questions && room.questions[qIdx] ? room.questions[qIdx] : room.topic;
-                      const stageIdx = (room.currentStepIndex - 1) % 3;
-                      if (stageIdx === 0) return `"${currentQ}" 주제에 대해 생각을 카드에 적어 붙여보자! 💡`;
-                      if (stageIdx === 1) return `"${currentQ}" 의견 발표자를 추천기로 정해서 생각을 나눠보자! 🎤`;
+                      const stageIdx = (room.currentStepIndex - 1) % 2;
+                      if (stageIdx === 0) return `"${currentQ}" 주제에 대해 생각을 카드에 적어 붙이고, 돌아가며 이야기를 나눠보자! 🎤`;
                       return `친구들의 "${currentQ}" 카드 중 마음에 드는 좋은 의견에 하트를 눌러보자! ❤️`;
                     })()}
                   </p>
@@ -407,8 +406,8 @@ export default function TeacherDashboard({
                 const isWarningState = group.alertType === "warning" || group.activityLevel === "low";
 
                 // Filter group postits for the current question if in a question step
-                const currentQuestionIndex = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3
-                  ? Math.floor((room.currentStepIndex - 1) / 3)
+                const currentQuestionIndex = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 2
+                  ? Math.floor((room.currentStepIndex - 1) / 2)
                   : null;
 
                 const filteredPostIts = currentQuestionIndex !== null

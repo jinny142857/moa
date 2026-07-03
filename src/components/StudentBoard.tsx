@@ -76,11 +76,11 @@ export default function StudentBoard({
 
   // Dynamic timeline calculations
   const questionsCount = room.questions?.length || 1;
-  const maxStepIndex = questionsCount * 3 + (room.hasVote ? 1 : 0) + 1;
-  const isQuestionStep = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3;
-  const currentQuestionIndex = isQuestionStep ? Math.floor((room.currentStepIndex - 1) / 3) : 0;
-  const stageIndex = isQuestionStep ? (room.currentStepIndex - 1) % 3 : null;
-  const votingStepIndex = room.hasVote ? questionsCount * 3 + 1 : -1;
+  const maxStepIndex = questionsCount * 2 + (room.hasVote ? 1 : 0) + 1;
+  const isQuestionStep = room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 2;
+  const currentQuestionIndex = isQuestionStep ? Math.floor((room.currentStepIndex - 1) / 2) : 0;
+  const stageIndex = isQuestionStep ? (room.currentStepIndex - 1) % 2 : null;
+  const votingStepIndex = room.hasVote ? questionsCount * 2 + 1 : -1;
 
   useEffect(() => {
     if (group?.artifactText !== undefined) {
@@ -437,70 +437,184 @@ export default function StudentBoard({
             </div>
           )}
 
-          {/* STEP 1: 생각 정리 (Thinking & Write Card) */}
-          {/* STEP 1: 생각 정리 (Thinking & Write Card) */}
+          {/* STEP 1: 토의 진행 (생각 카드 작성 & 발표자 추첨) */}
           {isQuestionStep && stageIndex === 0 && (
             <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"오늘의 질문은 '${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}'이야! 이 질문에 대해 조용히 생각을 적어보는 시간이야. 아래 칠판에 붙여보자! 💡"`)}
+              {renderSpeechBubble(`"아래 질문을 잘 읽고 생각을 적어 카드(포스트잇)를 붙인 다음, 모둠 친구들과 함께 돌아가며 이야기를 나눠보자! 🎤"`)}
 
-              {/* Discussion Question display */}
+              {/* 토의 주제 표시 */}
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-br-2xl">DISCUSSION TOPIC</div>
+                <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-br-2xl">토의 주제</div>
                 <h3 className="text-2xl font-black text-slate-800 leading-tight mt-2">
                   "{room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}"
                 </h3>
               </div>
 
-              {/* Opinion Input Form */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-500">생각 카드 적기</span>
-                  <div className="flex items-center gap-1.5">
-                    {isRecording && <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>}
-                    <span className="text-xs text-slate-400 font-bold">
-                      {isRecording ? "말로 받아쓰는 중..." : sttLoading ? "수정 제안 분석 중..." : "직접 말하여 의견 작성을 시작해 보세요!"}
-                    </span>
-                  </div>
-                </div>
+              {/* 좌우 2단 구성 (카드 작성 & 발표자 추첨) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                {/* 왼쪽: 생각 카드 작성 */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-bold text-slate-500">생각 카드 적기</span>
+                      <div className="flex items-center gap-1.5">
+                        {isRecording && <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>}
+                        <span className="text-xs text-slate-400 font-bold">
+                          {isRecording ? "말로 받아쓰는 중..." : sttLoading ? "수정 제안 분석 중..." : "직접 말하여 의견 작성을 시작해 보세요!"}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="relative">
-                  <textarea
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-sans text-md focus:bg-white focus:border-orange-400 outline-none transition-all h-28 resize-none"
-                    placeholder="마이크 단추를 눌러서 말하거나, 직접 키보드로 의견을 입력해 보세요!"
-                    value={postItText}
-                    onChange={(e) => setPostItText(e.target.value)}
-                    disabled={sttLoading}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-400">배경 색상:</span>
-                    <div className="flex gap-1.5">
-                      {stickyColors.map((col) => (
-                        <button
-                          key={col.hex}
-                          type="button"
-                          onClick={() => setPostItColor(col.hex)}
-                          className={`w-7 h-7 rounded-lg border transition-transform ${
-                            postItColor === col.hex ? "border-slate-800 scale-110 shadow-sm" : "border-slate-200"
-                          }`}
-                          style={{ backgroundColor: col.hex }}
-                        />
-                      ))}
+                    <div className="relative">
+                      <textarea
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-sans text-md focus:bg-white focus:border-orange-400 outline-none transition-all h-32 resize-none"
+                        placeholder="마이크 단추를 눌러서 말하거나, 직접 키보드로 의견을 입력해 보세요!"
+                        value={postItText}
+                        onChange={(e) => setPostItText(e.target.value)}
+                        disabled={sttLoading}
+                      />
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handlePostItSubmit()}
-                    disabled={!postItText.trim() || sttLoading}
-                    className="h-12 px-6 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full shadow-md flex items-center gap-1.5 transition-all text-sm"
-                  >
-                    <span className="material-symbols-outlined text-sm">sticky_note_2</span>
-                    의견 제출하기
-                  </button>
+                  <div className="flex items-center justify-between gap-4 mt-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400">배경 색상:</span>
+                      <div className="flex gap-1.5">
+                        {stickyColors.map((col) => (
+                          <button
+                            key={col.hex}
+                            type="button"
+                            onClick={() => setPostItColor(col.hex)}
+                            className={`w-7 h-7 rounded-lg border transition-transform ${
+                              postItColor === col.hex ? "border-slate-800 scale-110 shadow-sm" : "border-slate-200"
+                            }`}
+                            style={{ backgroundColor: col.hex }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handlePostItSubmit()}
+                      disabled={!postItText.trim() || sttLoading}
+                      className="h-12 px-6 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full shadow-md flex items-center gap-1.5 transition-all text-sm"
+                    >
+                      <span className="material-symbols-outlined text-sm">sticky_note_2</span>
+                      의견 제출하기
+                    </button>
+                  </div>
                 </div>
+
+                {/* 오른쪽: 발표자 추첨 */}
+                {(room.questionsUseRandom === undefined || room.questionsUseRandom[currentQuestionIndex] !== false) ? (
+                  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[280px]">
+                    <div>
+                      <span className="text-sm font-bold text-slate-500 block mb-3">발표 순서 정하기</span>
+                      {isSpinning ? (
+                        <div className="w-full bg-slate-900 border-4 border-amber-400 rounded-2xl p-4 shadow-md relative overflow-hidden text-center space-y-3">
+                          <div className="flex justify-between px-2">
+                            <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+                            <span className="text-[10px] font-bold text-amber-400 tracking-widest">발표자 추첨 슬롯머신</span>
+                            <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+                          </div>
+                          <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-2 border-amber-500 rounded-xl h-20 flex items-center justify-center relative shadow-inner overflow-hidden">
+                            <div className="absolute inset-x-0 h-0.5 bg-red-600/60 top-1/2 -translate-y-1/2 z-10"></div>
+                            <div className="font-headline text-2xl font-black text-amber-300 tracking-wider animate-bounce">
+                              🎰 {displayedSpinnerName || "추첨 중..."}
+                            </div>
+                          </div>
+                        </div>
+                      ) : group.currentSpeaker === student.name ? (
+                        <div className="w-full bg-amber-50 border-2 border-orange-400 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
+                          <span className="material-symbols-outlined text-orange-500 text-5xl animate-bounce">mic</span>
+                          <h3 className="text-lg font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
+                          <p className="text-xs text-slate-600 leading-normal">
+                            모둠 친구들에게 내가 작성했던 의견 카드를 소리내어 설명해 주세요.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={onPassSpeaker}
+                            disabled={group.passTickets <= 0}
+                            className="px-5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[11px] rounded-full shadow-sm disabled:opacity-40 transition-all mx-auto block"
+                          >
+                            다음 친구에게 양보하기 ({group.passTickets}장 있음)
+                          </button>
+                        </div>
+                      ) : group.currentSpeaker ? (
+                        <div className="w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
+                          <span className="material-symbols-outlined text-orange-500 text-4xl animate-pulse">campaign</span>
+                          <h3 className="text-lg font-bold text-slate-700">
+                            현재 발표자: <span className="text-orange-500 font-extrabold">{group.currentSpeaker}</span>
+                          </h3>
+                          <p className="text-[11px] text-slate-400">
+                            친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
+                          </p>
+                          {group.drawnSpeakers.length === activeGroupStudents.length ? (
+                            <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 inline-block">
+                              🎉 모든 모둠원이 발표를 완료했습니다!
+                            </div>
+                          ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
+                            <button
+                              type="button"
+                              onClick={onDrawSpeaker}
+                              className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold rounded-full shadow-md animate-pulse mx-auto block"
+                            >
+                              마지막 발표자 확인하기 🎤
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={onDrawSpeaker}
+                              className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-600 rounded-full shadow-sm mx-auto block"
+                            >
+                              다음 발표자 또 뽑기 🎲
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-full bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-5 shadow-sm text-center space-y-3">
+                          <div className="bg-white border border-amber-300 rounded-xl h-20 flex items-center justify-center shadow-inner">
+                            <p className="font-headline text-md font-black text-amber-800">
+                              누가 발표해 볼까요?
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={onDrawSpeaker}
+                            className="w-full h-10 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-xs font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1 border-b border-orange-700 mx-auto block"
+                          >
+                            {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 발표 이력 */}
+                    {group.drawnSpeakers.length > 0 && (
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-3 text-left">
+                        <span className="text-[10px] font-bold text-slate-400 block mb-1">발표 완료 친구 목록</span>
+                        <div className="flex flex-wrap gap-1.5 items-center text-[10px]">
+                          {group.drawnSpeakers.map((name, i) => (
+                            <React.Fragment key={`${name}-${i}`}>
+                              {i > 0 && <span className="text-slate-300">➡️</span>}
+                              <span className="px-2 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-600 shadow-sm">{name}</span>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-3xl flex flex-col justify-center items-center text-center h-full min-h-[280px] space-y-3">
+                    <span className="material-symbols-outlined text-slate-400 text-5xl animate-pulse">forum</span>
+                    <h4 className="font-headline text-md font-bold text-slate-700">자유로운 생각 공유 시간</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed max-w-[280px]">
+                      이 질문에는 발표 추첨기 기능이 꺼져 있습니다.<br />
+                      생각 카드를 등록하고, 모둠원들과 자유롭고 열린 대화를 나누며 생각을 나누어 보세요! 💬
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* 실시간으로 모둠원들이 낸 의견 칠판 노출 */}
@@ -512,7 +626,7 @@ export default function StudentBoard({
                   </h4>
                   <span className="text-[10px] text-slate-400 font-bold">제출된 포스트잇이 여기에 실시간으로 나타납니다.</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (
                     <div className="col-span-full py-8 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-2xl bg-white/50 text-xs">
                       아직 등록된 의견 카드가 없습니다. 첫 의견을 등록해 보세요!
@@ -539,146 +653,10 @@ export default function StudentBoard({
             </div>
           )}
 
-          {/* STEP 2: 발표자 뽑기 (Relay Discussion) */}
+          {/* STEP 2: 생각 모으기 (Bulletin Board with hearts) */}
           {isQuestionStep && stageIndex === 1 && (
             <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"모둠 발표자를 정해볼 시간이야! '${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}' 주제에 대해 차례를 정해보자. 친구 차례가 오면 마이크에 경청해 줘! 🎤"`)}
-
-              <div className="flex-1 flex flex-col justify-center items-center my-4">
-                {isSpinning ? (
-                  /* 🎰 SLOT MACHINE SPINNING REEL STATE */
-                  <div className="max-w-md w-full bg-slate-900 border-4 border-amber-400 rounded-3xl p-6 shadow-2xl relative overflow-hidden text-center space-y-4">
-                    {/* Flashing Neon Header */}
-                    <div className="flex justify-between px-2">
-                      <span className="w-3.5 h-3.5 bg-yellow-400 rounded-full animate-ping"></span>
-                      <span className="text-[11px] font-headline font-black text-amber-400 tracking-widest uppercase">SPEAKER SLOT MACHINE</span>
-                      <span className="w-3.5 h-3.5 bg-yellow-400 rounded-full animate-ping"></span>
-                    </div>
-
-                    {/* Mechanical Reel Display */}
-                    <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-4 border-amber-500 rounded-2xl h-28 flex items-center justify-center relative shadow-inner overflow-hidden">
-                      <div className="absolute inset-x-0 h-0.5 bg-red-600/60 top-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
-                      <div className="font-headline text-3xl font-black text-amber-300 tracking-wider animate-bounce">
-                        🎰 {displayedSpinnerName || "추첨 중..."}
-                      </div>
-                    </div>
-
-                    <p className="font-headline font-bold text-xs text-amber-400 animate-pulse">
-                      선생님과 친구들의 화면에 실시간으로 돌고 있어요! 두근두근!
-                    </p>
-                  </div>
-                ) : group.currentSpeaker === student.name ? (
-                  /* 🎤 MY TURN STATE */
-                  <div className="max-w-md w-full bg-amber-50 border-2 border-orange-400 p-8 rounded-3xl text-center space-y-4 shadow-xl animate-scale-in">
-                    <span className="material-symbols-outlined text-orange-500 text-6xl animate-bounce">mic</span>
-                    <h3 className="text-2xl font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      모둠 친구들에게 내가 작성했던 의견 카드를 소리내어 또박또박 설명해 주세요.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={onPassSpeaker}
-                      disabled={group.passTickets <= 0}
-                      className="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-full shadow-sm disabled:opacity-40 transition-all"
-                    >
-                      다음 친구에게 양보하기 ({group.passTickets}장 있음)
-                    </button>
-                  </div>
-                ) : group.currentSpeaker ? (
-                  /* 🔊 CLASSMATE TURN STATE */
-                  <div className="max-w-md w-full bg-slate-50 border border-slate-200 p-8 rounded-3xl text-center space-y-4 animate-scale-in">
-                    <span className="material-symbols-outlined text-orange-500 text-5xl animate-pulse">campaign</span>
-                    <h3 className="text-xl font-bold text-slate-700">
-                      현재 발표자: <span className="text-orange-500 font-extrabold">{group.currentSpeaker}</span>
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
-                    </p>
-                    {group.drawnSpeakers.length === activeGroupStudents.length ? (
-                      <div className="text-xs text-emerald-600 font-bold bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 inline-block animate-bounce">
-                        🎉 모든 모둠원이 발표를 완료했습니다!
-                      </div>
-                    ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
-                      <button
-                        type="button"
-                        onClick={onDrawSpeaker}
-                        className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-full shadow-md animate-pulse flex items-center gap-1.5 mx-auto"
-                      >
-                        <span className="material-symbols-outlined text-sm">face</span>
-                        마지막 발표자 확인하기 🎤
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={onDrawSpeaker}
-                        className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-full shadow-sm flex items-center gap-1.5 mx-auto"
-                      >
-                        <span className="material-symbols-outlined text-xs">casino</span>
-                        다음 발표자 또 뽑기 🎲
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  /* 🎲 IDLE / INITIAL SLOT MACHINE CABINET WITH PULL LEVER */
-                  <div className="max-w-md w-full bg-amber-500/10 border-4 border-amber-400/80 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-center">
-                    
-                    {/* Machine Body */}
-                    <div className="flex-1 text-center space-y-4 w-full">
-                      <div className="flex justify-center gap-1.5 mb-1">
-                        {[1, 2, 3, 4, 5].map((idx) => (
-                          <span key={idx} className="w-2 h-2 bg-amber-400 rounded-full animate-ping" style={{ animationDelay: `${idx * 150}ms` }} />
-                        ))}
-                      </div>
-
-                      <div className="bg-white border-2 border-amber-400 rounded-2xl h-24 flex items-center justify-center shadow-inner">
-                        <p className="font-headline text-xl font-black text-amber-800 tracking-tight">
-                          누가 발표해 볼까요?
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={onDrawSpeaker}
-                        className="w-full h-12 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-sm font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1.5 border-b-2 border-orange-700"
-                      >
-                        {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
-                      </button>
-                    </div>
-
-                    {/* Pull Lever Widget (Interactive representation) */}
-                    <div className="hidden sm:flex flex-col items-center justify-center pr-2 shrink-0">
-                      <div className="w-5 h-20 bg-slate-300 border-2 border-slate-400 rounded-full relative flex items-start justify-center cursor-pointer hover:bg-slate-200" onClick={onDrawSpeaker}>
-                        <div className="w-1.5 h-12 bg-slate-400 rounded-full"></div>
-                        <div className="w-8 h-8 bg-rose-600 hover:bg-rose-500 rounded-full border-2 border-rose-700 absolute -top-4 shadow-md transition-transform active:translate-y-12"></div>
-                      </div>
-                      <span className="text-[9px] text-slate-400 font-bold mt-2">레버 당기기</span>
-                    </div>
-
-                  </div>
-                )}
-              </div>
-
-              {group.drawnSpeakers.length > 0 && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <h4 className="text-xs font-bold text-slate-400 mb-2">발표 완료 친구 목록</h4>
-                  <div className="flex flex-wrap gap-2 items-center text-xs">
-                    {group.drawnSpeakers.map((name, i) => (
-                      <React.Fragment key={`${name}-${i}`}>
-                        {i > 0 && <span className="text-slate-300">➡️</span>}
-                        <span className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg font-bold text-slate-600 shadow-sm">{name}</span>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 3: 생각 모으기 (Bulletin Board with hearts) */}
-          {/* STEP 3: 생각 모으기 (Bulletin Board with hearts) */}
-          {isQuestionStep && stageIndex === 2 && (
-            <div className="space-y-6 flex-1 flex flex-col">
-              {renderSpeechBubble(`"'${room.questions && room.questions[currentQuestionIndex] ? room.questions[currentQuestionIndex] : room.topic}'에 대해 모둠 친구들이 낸 의견이 칠판에 모였어! 하나씩 잘 읽어보고 멋진 아이디어에 하트를 아낌없이 눌러주자! ❤️"`)}
+              {renderSpeechBubble(`"우리 모둠 친구들이 제출한 의견 카드를 하나씩 찬찬히 읽어보고, 정말 마음에 들거나 공감하는 좋은 의견들에 하트(❤️)를 아낌없이 눌러주자!"`)}
 
               <div className="flex-1 grid grid-cols-2 gap-4">
                 {group.postits.filter(p => p.questionId === currentQuestionIndex).length === 0 ? (

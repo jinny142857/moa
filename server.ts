@@ -189,7 +189,7 @@ setInterval(() => {
 
 // Create Room (Teacher Mode)
 app.post("/api/rooms/create", (req, res) => {
-  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount, questions, hasVote } = req.body;
+  const { topic, character, studentNames, stepPrompts, hasArtifact, groupCount, questions, hasVote, questionsUseRandom } = req.body;
   
   if (!topic) {
     res.status(400).json({ error: "토의 주제가 필요합니다." });
@@ -255,6 +255,7 @@ app.post("/api/rooms/create", (req, res) => {
     groupCount: groupCountNum,
     questions: Array.isArray(questions) ? questions.filter(Boolean) : [topic],
     hasVote: hasVote !== undefined ? Boolean(hasVote) : false,
+    questionsUseRandom: Array.isArray(questionsUseRandom) ? questionsUseRandom.map(Boolean) : (Array.isArray(questions) ? questions.map(() => true) : [true]),
   };
   
   rooms[roomId] = newRoom;
@@ -877,8 +878,8 @@ app.post("/api/rooms/:roomId/postit", async (req, res) => {
   // Calculate current questionId based on currentStepIndex
   let questionId = 0;
   const questionsCount = room.questions?.length || 1;
-  if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3) {
-    questionId = Math.floor((room.currentStepIndex - 1) / 3);
+  if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 2) {
+    questionId = Math.floor((room.currentStepIndex - 1) / 2);
   }
   
   const newPostIt: PostIt = {
@@ -1012,27 +1013,24 @@ app.post("/api/rooms/:roomId/step", (req, res) => {
   if (room.currentStepIndex === 0) {
     duration = 180;
     phaseName = "대기실 로비";
-  } else if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 3) {
+  } else if (room.currentStepIndex >= 1 && room.currentStepIndex <= questionsCount * 2) {
     const zeroIndexedStep = room.currentStepIndex - 1;
-    const questionIndex = Math.floor(zeroIndexedStep / 3);
-    const stageIndex = zeroIndexedStep % 3;
+    const questionIndex = Math.floor(zeroIndexedStep / 2);
+    const stageIndex = zeroIndexedStep % 2;
 
     if (stageIndex === 0) {
-      duration = 180; // 생각 시간 3분
-      phaseName = `질문 ${questionIndex + 1}: 생각 시간`;
-    } else if (stageIndex === 1) {
-      duration = 240; // 발표자 뽑기 4분
-      phaseName = `질문 ${questionIndex + 1}: 발표자 뽑기`;
-      // 새 질문 단계가 시작될 때마다 모든 모둠의 랜덤 발표 이력 및 현재 스피커 상태를 완벽히 초기화합니다.
+      duration = 240; // 토의 진행 4분
+      phaseName = `질문 ${questionIndex + 1}: 토의 진행`;
+      // 새 질문 단계가 시작될 때마다 모든 모둠의 발표자 추첨 기록을 초기화합니다.
       room.groups.forEach((g) => {
         g.currentSpeaker = null;
         g.drawnSpeakers = [];
       });
-    } else if (stageIndex === 2) {
+    } else if (stageIndex === 1) {
       duration = 300; // 생각 모으기 5분
       phaseName = `질문 ${questionIndex + 1}: 생각 모으기`;
     }
-  } else if (room.hasVote && room.currentStepIndex === questionsCount * 3 + 1) {
+  } else if (room.hasVote && room.currentStepIndex === questionsCount * 2 + 1) {
     duration = 120; // 미니 투표 2분
     phaseName = "미니 투표 진행";
   } else {
