@@ -450,10 +450,123 @@ export default function StudentBoard({
                 </h3>
               </div>
 
-              {/* 좌우 2단 구성 (카드 작성 & 발표자 추첨) */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                {/* 왼쪽: 생각 카드 작성 */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+              {/* 좌우 2단 구성 (발표자 추첨(좌) & 생각 카드 작성(우)) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                
+                {/* 왼쪽: 발표자 추첨 (크기 축소) */}
+                <div className="lg:col-span-5 flex flex-col">
+                  {(room.questionsUseRandom === undefined || room.questionsUseRandom[currentQuestionIndex] !== false) ? (
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[280px] h-full">
+                      <div>
+                        <span className="text-sm font-bold text-slate-500 block mb-3">발표 순서 정하기</span>
+                        {isSpinning ? (
+                          <div className="w-full bg-slate-900 border-4 border-amber-400 rounded-2xl p-4 shadow-md relative overflow-hidden text-center space-y-3">
+                            <div className="flex justify-between px-2">
+                              <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+                              <span className="text-[10px] font-bold text-amber-400 tracking-widest">발표자 추첨 슬롯머신</span>
+                              <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+                            </div>
+                            <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-2 border-amber-500 rounded-xl h-20 flex items-center justify-center relative shadow-inner overflow-hidden">
+                              <div className="absolute inset-x-0 h-0.5 bg-red-600/60 top-1/2 -translate-y-1/2 z-10"></div>
+                              <div className="font-headline text-2xl font-black text-amber-300 tracking-wider animate-bounce">
+                                🎰 {displayedSpinnerName || "추첨 중..."}
+                              </div>
+                            </div>
+                          </div>
+                        ) : group.currentSpeaker === student.name ? (
+                          <div className="w-full bg-amber-50 border-2 border-orange-400 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
+                            <span className="material-symbols-outlined text-orange-500 text-5xl animate-bounce">mic</span>
+                            <h3 className="text-lg font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
+                            <p className="text-xs text-slate-600 leading-normal">
+                              모둠 친구들에게 내가 작성했던 의견 카드를 소리내어 설명해 주세요.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={onPassSpeaker}
+                              disabled={group.passTickets <= 0}
+                              className="px-5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[11px] rounded-full shadow-sm disabled:opacity-40 transition-all mx-auto block"
+                            >
+                              다음 친구에게 양보하기 ({group.passTickets}장 있음)
+                            </button>
+                          </div>
+                        ) : group.currentSpeaker ? (
+                          <div className="w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
+                            <span className="material-symbols-outlined text-orange-500 text-4xl animate-pulse">campaign</span>
+                            <h3 className="text-lg font-bold text-slate-700">
+                              현재 발표자: <span className="text-orange-500 font-extrabold">{group.currentSpeaker}</span>
+                            </h3>
+                            <p className="text-[11px] text-slate-400">
+                              친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
+                            </p>
+                            {group.drawnSpeakers.length === activeGroupStudents.length ? (
+                              <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 inline-block">
+                                🎉 모든 모둠원이 발표를 완료했습니다!
+                              </div>
+                            ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
+                              <button
+                                type="button"
+                                onClick={onDrawSpeaker}
+                                className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold rounded-full shadow-md animate-pulse mx-auto block"
+                              >
+                                마지막 발표자 확인하기 🎤
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={onDrawSpeaker}
+                                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-600 rounded-full shadow-sm mx-auto block"
+                              >
+                                다음 발표자 또 뽑기 🎲
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-full bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-5 shadow-sm text-center space-y-3">
+                            <div className="bg-white border border-amber-300 rounded-xl h-20 flex items-center justify-center shadow-inner">
+                              <p className="font-headline text-md font-black text-amber-800">
+                                누가 발표해 볼까요?
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={onDrawSpeaker}
+                              className="w-full h-10 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-xs font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1 border-b border-orange-700 mx-auto block"
+                            >
+                              {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 발표 이력 */}
+                      {group.drawnSpeakers.length > 0 && (
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-3 text-left">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">발표 완료 친구 목록</span>
+                          <div className="flex flex-wrap gap-1.5 items-center text-[10px]">
+                            {group.drawnSpeakers.map((name, i) => (
+                              <React.Fragment key={`${name}-${i}`}>
+                                {i > 0 && <span className="text-slate-300">➡️</span>}
+                                <span className="px-2 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-600 shadow-sm">{name}</span>
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-3xl flex flex-col justify-center items-center text-center h-full min-h-[280px] space-y-3">
+                      <span className="material-symbols-outlined text-slate-400 text-5xl animate-pulse">forum</span>
+                      <h4 className="font-headline text-md font-bold text-slate-700">자유로운 생각 공유 시간</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed max-w-[280px]">
+                        이 질문에는 발표 추첨기 기능이 꺼져 있습니다.<br />
+                        생각 카드를 등록하고, 모둠원들과 자유롭고 열린 대화를 나누며 생각을 나누어 보세요! 💬
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 오른쪽: 생각 카드 작성 (크기 확대) */}
+                <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-bold text-slate-500">생각 카드 적기</span>
@@ -501,120 +614,10 @@ export default function StudentBoard({
                       className="h-12 px-6 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full shadow-md flex items-center gap-1.5 transition-all text-sm"
                     >
                       <span className="material-symbols-outlined text-sm">sticky_note_2</span>
-                      의견 제출하기
+                      의견 제출
                     </button>
                   </div>
                 </div>
-
-                {/* 오른쪽: 발표자 추첨 */}
-                {(room.questionsUseRandom === undefined || room.questionsUseRandom[currentQuestionIndex] !== false) ? (
-                  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between min-h-[280px]">
-                    <div>
-                      <span className="text-sm font-bold text-slate-500 block mb-3">발표 순서 정하기</span>
-                      {isSpinning ? (
-                        <div className="w-full bg-slate-900 border-4 border-amber-400 rounded-2xl p-4 shadow-md relative overflow-hidden text-center space-y-3">
-                          <div className="flex justify-between px-2">
-                            <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
-                            <span className="text-[10px] font-bold text-amber-400 tracking-widest">발표자 추첨 슬롯머신</span>
-                            <span className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
-                          </div>
-                          <div className="bg-gradient-to-b from-slate-950 via-slate-800 to-slate-950 border-2 border-amber-500 rounded-xl h-20 flex items-center justify-center relative shadow-inner overflow-hidden">
-                            <div className="absolute inset-x-0 h-0.5 bg-red-600/60 top-1/2 -translate-y-1/2 z-10"></div>
-                            <div className="font-headline text-2xl font-black text-amber-300 tracking-wider animate-bounce">
-                              🎰 {displayedSpinnerName || "추첨 중..."}
-                            </div>
-                          </div>
-                        </div>
-                      ) : group.currentSpeaker === student.name ? (
-                        <div className="w-full bg-amber-50 border-2 border-orange-400 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
-                          <span className="material-symbols-outlined text-orange-500 text-5xl animate-bounce">mic</span>
-                          <h3 className="text-lg font-black text-orange-800">내 발표 순서입니다! 🎤</h3>
-                          <p className="text-xs text-slate-600 leading-normal">
-                            모둠 친구들에게 내가 작성했던 의견 카드를 소리내어 설명해 주세요.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={onPassSpeaker}
-                            disabled={group.passTickets <= 0}
-                            className="px-5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[11px] rounded-full shadow-sm disabled:opacity-40 transition-all mx-auto block"
-                          >
-                            다음 친구에게 양보하기 ({group.passTickets}장 있음)
-                          </button>
-                        </div>
-                      ) : group.currentSpeaker ? (
-                        <div className="w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center space-y-3 shadow-md animate-scale-in">
-                          <span className="material-symbols-outlined text-orange-500 text-4xl animate-pulse">campaign</span>
-                          <h3 className="text-lg font-bold text-slate-700">
-                            현재 발표자: <span className="text-orange-500 font-extrabold">{group.currentSpeaker}</span>
-                          </h3>
-                          <p className="text-[11px] text-slate-400">
-                            친구가 열심히 설명하는 동안 집중해서 귀 기울여 들어볼까요? 👂
-                          </p>
-                          {group.drawnSpeakers.length === activeGroupStudents.length ? (
-                            <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 inline-block">
-                              🎉 모든 모둠원이 발표를 완료했습니다!
-                            </div>
-                          ) : activeGroupStudents.length - group.drawnSpeakers.length === 1 ? (
-                            <button
-                              type="button"
-                              onClick={onDrawSpeaker}
-                              className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold rounded-full shadow-md animate-pulse mx-auto block"
-                            >
-                              마지막 발표자 확인하기 🎤
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={onDrawSpeaker}
-                              className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-600 rounded-full shadow-sm mx-auto block"
-                            >
-                              다음 발표자 또 뽑기 🎲
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="w-full bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-5 shadow-sm text-center space-y-3">
-                          <div className="bg-white border border-amber-300 rounded-xl h-20 flex items-center justify-center shadow-inner">
-                            <p className="font-headline text-md font-black text-amber-800">
-                              누가 발표해 볼까요?
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={onDrawSpeaker}
-                            className="w-full h-10 bg-orange-500 hover:bg-orange-600 active:translate-y-0.5 text-white font-headline text-xs font-black rounded-full shadow-md transition-all flex items-center justify-center gap-1 border-b border-orange-700 mx-auto block"
-                          >
-                            {activeGroupStudents.length === 1 ? "🎤 발표자 확인하기" : "🎲 랜덤 추첨 슬롯 돌리기"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 발표 이력 */}
-                    {group.drawnSpeakers.length > 0 && (
-                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-3 text-left">
-                        <span className="text-[10px] font-bold text-slate-400 block mb-1">발표 완료 친구 목록</span>
-                        <div className="flex flex-wrap gap-1.5 items-center text-[10px]">
-                          {group.drawnSpeakers.map((name, i) => (
-                            <React.Fragment key={`${name}-${i}`}>
-                              {i > 0 && <span className="text-slate-300">➡️</span>}
-                              <span className="px-2 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-600 shadow-sm">{name}</span>
-                            </React.Fragment>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-3xl flex flex-col justify-center items-center text-center h-full min-h-[280px] space-y-3">
-                    <span className="material-symbols-outlined text-slate-400 text-5xl animate-pulse">forum</span>
-                    <h4 className="font-headline text-md font-bold text-slate-700">자유로운 생각 공유 시간</h4>
-                    <p className="text-xs text-slate-500 leading-relaxed max-w-[280px]">
-                      이 질문에는 발표 추첨기 기능이 꺼져 있습니다.<br />
-                      생각 카드를 등록하고, 모둠원들과 자유롭고 열린 대화를 나누며 생각을 나누어 보세요! 💬
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* 실시간으로 모둠원들이 낸 의견 칠판 노출 */}
